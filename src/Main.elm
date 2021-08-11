@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Element exposing (Element, centerX, column, el, fill, row, spacing, text, width)
+import Element exposing (centerX, column, el, fill, row, spacing, text, width)
 import Element.Input exposing (button)
 import Html exposing (Html)
 
@@ -116,16 +116,6 @@ view model =
                             ]
                         ]
             ]
-
-
-nodeToString : Tree String -> String
-nodeToString tree =
-    case tree of
-        Empty ->
-            "(empty)"
-
-        Node n _ _ ->
-            n
 
 
 
