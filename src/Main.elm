@@ -37,7 +37,7 @@ type alias Model =
 
 initialTree : Tree String
 initialTree =
-    Node "a microwave" Empty Empty
+    Node "can you cook with it" (Node "a scrubbie" Empty Empty) (Node "a microwave" Empty Empty)
 
 
 init : Model
@@ -69,7 +69,17 @@ view model =
         column
             [ centerX ]
             [ el [ centerX ] <| text <| "20 Questions"
-            , el [ centerX ] <| text <| "Is it " ++ nodeToString model.currentNode ++ "?"
+            , case model.currentNode of
+                Empty ->
+                    text "This shouldn't happen!"
+
+                Node n l r ->
+                    case l of
+                        Empty ->
+                            text <| "Is it " ++ n ++ "?"
+
+                        _ ->
+                            text <| n ++ "?"
             , row [ centerX, spacing 50 ]
                 [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
                 , button [] { onPress = Just NoButtonPressed, label = text "No" }
