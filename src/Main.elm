@@ -8,6 +8,13 @@ import Html exposing (Html)
 
 
 -- MODEL
+-- 20Q I think is represented by a binary tree. Each node is a question, with YES or NO branches.
+-- Leaf nodes represent answers?
+
+
+type Tree a
+    = Empty
+    | Node a (Tree a) (Tree a)
 
 
 type Msg
@@ -16,7 +23,12 @@ type Msg
 
 
 type alias Model =
-    Int
+    Tree String
+
+
+init : Model
+init =
+    Node "a microwave" Empty Empty
 
 
 
@@ -25,7 +37,12 @@ type alias Model =
 
 update : Msg -> Model -> Model
 update msg model =
-    model
+    case msg of
+        YesButtonPressed ->
+            model
+
+        NoButtonPressed ->
+            model
 
 
 
@@ -37,8 +54,8 @@ view model =
     Element.layout [ centerX, width fill ] <|
         column
             [ centerX ]
-            [ el [ centerX ] <| text <| "20 Questions " ++ String.fromInt model
-            , el [ centerX ] <| text "Is it bigger than a microwave?"
+            [ el [ centerX ] <| text <| "20 Questions"
+            , el [ centerX ] <| text <| "Is it " ++ nodeToString model ++ "?"
             , row [ centerX, spacing 50 ]
                 [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
                 , button [] { onPress = Just NoButtonPressed, label = text "No" }
@@ -46,9 +63,23 @@ view model =
             ]
 
 
+nodeToString : Tree String -> String
+nodeToString tree =
+    case tree of
+        Empty ->
+            "(empty)"
+
+        Node n _ _ ->
+            n
+
+
+
+-- MAIN
+
+
 main =
     Browser.sandbox
-        { init = 0
+        { init = init
         , update = update
         , view = view
         }
