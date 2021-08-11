@@ -37,7 +37,7 @@ type alias Model =
 
 initialTree : Tree String
 initialTree =
-    Node "Can you cook with it?" (Node "a scrubbie" Empty Empty) (Node "a microwave" Empty Empty)
+    Node "Does it star Arnold Swarzenegger?" (Node "RoboCop" Empty Empty) (Node "The Terminator" Empty Empty)
 
 
 init : Model
@@ -88,7 +88,7 @@ view model =
     Element.layout [ centerX, width fill ] <|
         column
             [ centerX ]
-            [ el [ centerX ] <| text <| "20 Questions"
+            [ el [ centerX ] <| text <| "20 Movie Questions"
             , case model.state of
                 Won ->
                     text "Yay! I guessed right!"
