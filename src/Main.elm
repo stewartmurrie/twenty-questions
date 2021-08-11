@@ -96,22 +96,25 @@ view model =
                 Lost ->
                     text "Bummer! I got it wrong."
 
+                -- TODO: ask questions to grow the knowledge graph
                 Running ->
-                    case model.currentNode of
-                        Empty ->
-                            text "This shouldn't happen!"
+                    column []
+                        [ case model.currentNode of
+                            Empty ->
+                                text "This shouldn't happen!"
 
-                        Node n l r ->
-                            case l of
-                                Empty ->
-                                    text <| "Is it " ++ n ++ "?"
+                            Node n l r ->
+                                case l of
+                                    Empty ->
+                                        text <| "Is it " ++ n ++ "?"
 
-                                _ ->
-                                    text n
-            , row [ centerX, spacing 50 ]
-                [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
-                , button [] { onPress = Just NoButtonPressed, label = text "No" }
-                ]
+                                    _ ->
+                                        text n
+                        , row [ centerX, spacing 50 ]
+                            [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
+                            , button [] { onPress = Just NoButtonPressed, label = text "No" }
+                            ]
+                        ]
             ]
 
 
