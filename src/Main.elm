@@ -53,10 +53,20 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         YesButtonPressed ->
-            model
+            case model.currentNode of
+                Empty ->
+                    { model | currentNode = Empty }
+
+                Node _ _ r ->
+                    { model | currentNode = r }
 
         NoButtonPressed ->
-            model
+            case model.currentNode of
+                Empty ->
+                    { model | currentNode = Empty }
+
+                Node _ l _ ->
+                    { model | currentNode = l }
 
 
 
