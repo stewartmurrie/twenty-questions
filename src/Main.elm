@@ -17,18 +17,32 @@ type Tree a
     | Node a (Tree a) (Tree a)
 
 
+type State
+    = Running
+    | Won
+    | Lost
+
+
 type Msg
     = YesButtonPressed
     | NoButtonPressed
 
 
 type alias Model =
-    Tree String
+    { tree : Tree String
+    , currentNode : Tree String
+    , state : State
+    }
+
+
+initialTree : Tree String
+initialTree =
+    Node "a microwave" Empty Empty
 
 
 init : Model
 init =
-    Node "a microwave" Empty Empty
+    { tree = initialTree, currentNode = initialTree, state = Running }
 
 
 
@@ -55,7 +69,7 @@ view model =
         column
             [ centerX ]
             [ el [ centerX ] <| text <| "20 Questions"
-            , el [ centerX ] <| text <| "Is it " ++ nodeToString model ++ "?"
+            , el [ centerX ] <| text <| "Is it " ++ nodeToString model.currentNode ++ "?"
             , row [ centerX, spacing 50 ]
                 [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
                 , button [] { onPress = Just NoButtonPressed, label = text "No" }
