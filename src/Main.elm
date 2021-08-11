@@ -1,7 +1,8 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (div)
+import Element exposing (Element, el, text)
+import Html exposing (Html)
 
 
 main =
@@ -12,9 +13,12 @@ main =
         }
 
 
+update : a -> a
 update m =
     m
 
 
+view : Int -> Html msg
 view model =
-    div [] []
+    Element.layout []
+        (text <| "20 Questions " ++ String.fromInt model)
