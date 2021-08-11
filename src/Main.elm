@@ -37,7 +37,7 @@ type alias Model =
 
 initialTree : Tree String
 initialTree =
-    Node "can you cook with it" (Node "a scrubbie" Empty Empty) (Node "a microwave" Empty Empty)
+    Node "Can you cook with it?" (Node "a scrubbie" Empty Empty) (Node "a microwave" Empty Empty)
 
 
 init : Model
@@ -58,7 +58,12 @@ update msg model =
                     { model | currentNode = Empty }
 
                 Node _ _ r ->
-                    { model | currentNode = r }
+                    case r of
+                        Empty ->
+                            { model | state = Won }
+
+                        Node _ _ _ ->
+                            { model | currentNode = r }
 
         NoButtonPressed ->
             case model.currentNode of
@@ -66,7 +71,12 @@ update msg model =
                     { model | currentNode = Empty }
 
                 Node _ l _ ->
-                    { model | currentNode = l }
+                    case l of
+                        Empty ->
+                            { model | state = Lost }
+
+                        Node _ _ _ ->
+                            { model | currentNode = l }
 
 
 
@@ -79,17 +89,25 @@ view model =
         column
             [ centerX ]
             [ el [ centerX ] <| text <| "20 Questions"
-            , case model.currentNode of
-                Empty ->
-                    text "This shouldn't happen!"
+            , case model.state of
+                Won ->
+                    text "Yay! I guessed right!"
 
-                Node n l r ->
-                    case l of
+                Lost ->
+                    text "Bummer! I got it wrong."
+
+                Running ->
+                    case model.currentNode of
                         Empty ->
-                            text <| "Is it " ++ n ++ "?"
+                            text "This shouldn't happen!"
 
-                        _ ->
-                            text <| n ++ "?"
+                        Node n l r ->
+                            case l of
+                                Empty ->
+                                    text <| "Is it " ++ n ++ "?"
+
+                                _ ->
+                                    text n
             , row [ centerX, spacing 50 ]
                 [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
                 , button [] { onPress = Just NoButtonPressed, label = text "No" }
