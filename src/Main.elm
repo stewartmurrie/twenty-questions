@@ -138,7 +138,15 @@ update msg model =
             { model | questionFieldText = t }
 
         QuestionWasEntered ->
-            { model | state = GotQuestion }
+            let
+                question =
+                    if String.endsWith "?" model.questionFieldText then
+                        model.questionFieldText
+
+                    else
+                        model.questionFieldText ++ "?"
+            in
+            { model | state = GotQuestion, questionFieldText = question }
 
         PlayAgainButtonPressed ->
             { model
