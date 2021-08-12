@@ -6,7 +6,7 @@ import Element.Input as Input exposing (button)
 import Html exposing (Html)
 import Html.Events
 import Json.Decode as Decode
-import QuestionTree exposing (Answer(..), QuestionTree(..), addNode)
+import QuestionTree exposing (Answer(..), QuestionTree(..), addKnowledge)
 
 
 
@@ -83,7 +83,7 @@ update msg model =
                 GotQuestion ->
                     let
                         newTree =
-                            addNode model.questionFieldText model.movieFieldText model.currentNode Yes model.tree
+                            addKnowledge model.questionFieldText model.movieFieldText model.currentNode Yes model.tree
                     in
                     { model
                         | state = MovieAdded
@@ -111,7 +111,7 @@ update msg model =
                 GotQuestion ->
                     let
                         newTree =
-                            addNode model.questionFieldText model.movieFieldText model.currentNode No model.tree
+                            addKnowledge model.questionFieldText model.movieFieldText model.currentNode No model.tree
                     in
                     { model
                         | state = MovieAdded

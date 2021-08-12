@@ -2,7 +2,7 @@ module TreeTests exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import QuestionTree exposing (Answer(..), QuestionTree(..), addNode)
+import QuestionTree exposing (Answer(..), QuestionTree(..), addKnowledge)
 import Test exposing (..)
 
 
@@ -30,10 +30,10 @@ suite =
             \_ ->
                 Expect.equal
                     twoMovies
-                    (addNode "is Arnie?" "The Terminator" singleMovie Yes singleMovie)
+                    (addKnowledge "is Arnie?" "The Terminator" singleMovie Yes singleMovie)
         , test "Add third movie" <|
             \_ ->
                 Expect.equal
                     threeMovies
-                    (addNode "is cyborg?" "Commando" (Node "The Terminator" Empty Empty) No twoMovies)
+                    (addKnowledge "is cyborg?" "Commando" (Node "The Terminator" Empty Empty) No twoMovies)
         ]
