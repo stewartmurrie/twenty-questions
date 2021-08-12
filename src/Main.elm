@@ -75,9 +75,9 @@ update msg model =
                 Running ->
                     case model.currentNode of
                         Empty ->
+                            -- Should be impossible!
                             { model | currentNode = Empty }
 
-                        -- Should be impossible!
                         Node _ _ r ->
                             case r of
                                 Empty ->
@@ -104,9 +104,9 @@ update msg model =
                 Running ->
                     case model.currentNode of
                         Empty ->
+                            -- Should be impossible!
                             { model | currentNode = Empty }
 
-                        -- Should be impossible!
                         Node _ l _ ->
                             case l of
                                 Empty ->
@@ -191,12 +191,12 @@ view model =
                         ]
 
                 Lost ->
-                    column []
+                    column [ width fill, spacing 20 ]
                         [ text "Bummer! I got it wrong."
-                        , Input.text [ onEnter MovieWasEntered ]
+                        , Input.text [ onEnter MovieWasEntered, spacing 10 ]
                             { text = model.movieFieldText
                             , placeholder = Nothing
-                            , label = Input.labelLeft [] (text "What movie are you thinking of?")
+                            , label = Input.labelAbove [] (text "What movie were you thinking of?")
                             , onChange = MovieFieldUpdated
                             }
                         ]
@@ -205,27 +205,30 @@ view model =
                     column [ width fill, spacing 20 ]
                         [ case model.currentNode of
                             Empty ->
+                                -- Should be impossible!
                                 text "This should not be possible!"
 
                             Node v _ _ ->
-                                paragraph [ centerX, width fill ]
-                                    [ text <|
-                                        "What question would distinguish "
-                                    , el [ Font.semiBold, Font.italic ]
-                                        (text <|
-                                            model.movieFieldText
-                                        )
-                                    , text <|
-                                        " from "
-                                    , el [ Font.semiBold, Font.italic ] (text v)
-                                    , text "?"
-                                    ]
-                        , Input.text [ onEnter QuestionWasEntered ]
-                            { text = model.questionFieldText
-                            , placeholder = Nothing
-                            , label = Input.labelLeft [] (text "")
-                            , onChange = QuestionFieldUpdated
-                            }
+                                Input.text [ onEnter QuestionWasEntered, spacing 10 ]
+                                    { text = model.questionFieldText
+                                    , placeholder = Nothing
+                                    , label =
+                                        Input.labelAbove [ spacing 20 ]
+                                            (paragraph [ centerX, width fill ]
+                                                [ text <|
+                                                    "What question would distinguish "
+                                                , el [ Font.semiBold, Font.italic ]
+                                                    (text <|
+                                                        model.movieFieldText
+                                                    )
+                                                , text <|
+                                                    " from "
+                                                , el [ Font.semiBold, Font.italic ] (text v)
+                                                , text "?"
+                                                ]
+                                            )
+                                    , onChange = QuestionFieldUpdated
+                                    }
                         ]
 
                 GotQuestion ->
@@ -258,6 +261,7 @@ view model =
                     column [ centerX, width fill ]
                         [ case model.currentNode of
                             Empty ->
+                                -- Should be impossible
                                 text "This shouldn't happen!"
 
                             Node n l _ ->
