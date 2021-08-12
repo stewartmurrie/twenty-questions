@@ -21,6 +21,7 @@ type State
     | Lost
     | GotMovie
     | GotQuestion
+    | MovieAdded
 
 
 type Msg
@@ -30,6 +31,7 @@ type Msg
     | QuestionFieldUpdated String
     | MovieWasEntered
     | QuestionWasEntered
+    | PlayAgainButtonPressed
 
 
 type alias Model =
@@ -84,9 +86,8 @@ update msg model =
                             addNode model.questionFieldText model.movieFieldText model.currentNode Yes model.tree
                     in
                     { model
-                        | state = Running
+                        | state = MovieAdded
                         , tree = newTree
-                        , currentNode = newTree
                     }
 
                 _ ->
@@ -113,9 +114,8 @@ update msg model =
                             addNode model.questionFieldText model.movieFieldText model.currentNode No model.tree
                     in
                     { model
-                        | state = Running
+                        | state = MovieAdded
                         , tree = newTree
-                        , currentNode = newTree
                     }
 
                 _ ->
@@ -132,6 +132,14 @@ update msg model =
 
         QuestionWasEntered ->
             { model | state = GotQuestion }
+
+        PlayAgainButtonPressed ->
+            { model
+                | state = Running
+                , currentNode = model.tree
+                , questionFieldText = ""
+                , movieFieldText = ""
+            }
 
 
 onEnter : msg -> Element.Attribute msg
@@ -163,7 +171,10 @@ view model =
             [ el [ centerX ] <| text <| "20 Movie Questions"
             , case model.state of
                 Won ->
-                    text "Yay! I guessed right!"
+                    column []
+                        [ text "Yay! I guessed right!"
+                        , button [] { onPress = Just PlayAgainButtonPressed, label = text "Play Again" }
+                        ]
 
                 Lost ->
                     column []
@@ -194,14 +205,19 @@ view model =
 
                 GotQuestion ->
                     column []
-                        [ text <| "If I asked the question " ++ model.questionFieldText ++ " about " ++ model.movieFieldText ++ ", what would the answer be?"
+                        [ text <| "If I asked the question '" ++ model.questionFieldText ++ "' about " ++ model.movieFieldText ++ ", what would the answer be?"
                         , row [ centerX, spacing 50 ]
                             [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
                             , button [] { onPress = Just NoButtonPressed, label = text "No" }
                             ]
                         ]
 
-                -- TODO: ask questions to grow the knowledge graph
+                MovieAdded ->
+                    column []
+                        [ text <| "Ok! I'll remember " ++ model.movieFieldText ++ " for next time."
+                        , button [] { onPress = Just PlayAgainButtonPressed, label = text "Play Again" }
+                        ]
+
                 Running ->
                     column []
                         [ case model.currentNode of
