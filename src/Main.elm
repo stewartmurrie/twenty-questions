@@ -3,10 +3,10 @@ module Main exposing (main)
 import Browser
 import Element exposing (centerX, column, el, fill, row, spacing, text, width)
 import Element.Input as Input exposing (button)
-import Html exposing (Html, a)
+import Html exposing (Html)
 import Html.Events
 import Json.Decode as Decode
-import QuestionTree exposing (QuestionTree(..))
+import QuestionTree exposing (Answer(..), QuestionTree(..), addNode)
 
 
 
@@ -64,30 +64,62 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         YesButtonPressed ->
-            case model.currentNode of
-                Empty ->
-                    { model | currentNode = Empty }
-
-                Node _ _ r ->
-                    case r of
+            case model.state of
+                Running ->
+                    case model.currentNode of
                         Empty ->
-                            { model | state = Won }
+                            { model | currentNode = Empty }
 
-                        Node _ _ _ ->
-                            { model | currentNode = r }
+                        Node _ _ r ->
+                            case r of
+                                Empty ->
+                                    { model | state = Won }
+
+                                Node _ _ _ ->
+                                    { model | currentNode = r }
+
+                GotQuestion ->
+                    let
+                        newTree =
+                            addNode model.questionFieldText model.movieFieldText model.currentNode Yes model.tree
+                    in
+                    { model
+                        | state = Running
+                        , tree = newTree
+                        , currentNode = newTree
+                    }
+
+                _ ->
+                    model
 
         NoButtonPressed ->
-            case model.currentNode of
-                Empty ->
-                    { model | currentNode = Empty }
-
-                Node _ l _ ->
-                    case l of
+            case model.state of
+                Running ->
+                    case model.currentNode of
                         Empty ->
-                            { model | state = Lost }
+                            { model | currentNode = Empty }
 
-                        Node _ _ _ ->
-                            { model | currentNode = l }
+                        Node _ l _ ->
+                            case l of
+                                Empty ->
+                                    { model | state = Lost }
+
+                                Node _ _ _ ->
+                                    { model | currentNode = l }
+
+                GotQuestion ->
+                    let
+                        newTree =
+                            addNode model.questionFieldText model.movieFieldText model.currentNode No model.tree
+                    in
+                    { model
+                        | state = Running
+                        , tree = newTree
+                        , currentNode = newTree
+                    }
+
+                _ ->
+                    model
 
         MovieFieldUpdated t ->
             { model | movieFieldText = t }
