@@ -43,6 +43,7 @@ type alias Model =
     , state : State
     , movieFieldText : String
     , questionFieldText : String
+    , questionCount : Int
     }
 
 
@@ -58,6 +59,7 @@ init =
     , state = Running
     , movieFieldText = ""
     , questionFieldText = ""
+    , questionCount = 1
     }
 
 
@@ -75,13 +77,14 @@ update msg model =
                         Empty ->
                             { model | currentNode = Empty }
 
+                        -- Should be impossible!
                         Node _ _ r ->
                             case r of
                                 Empty ->
                                     { model | state = Won }
 
                                 Node _ _ _ ->
-                                    { model | currentNode = r }
+                                    { model | currentNode = r, questionCount = model.questionCount + 1 }
 
                 GotQuestion ->
                     let
@@ -103,13 +106,14 @@ update msg model =
                         Empty ->
                             { model | currentNode = Empty }
 
+                        -- Should be impossible!
                         Node _ l _ ->
                             case l of
                                 Empty ->
                                     { model | state = Lost }
 
                                 Node _ _ _ ->
-                                    { model | currentNode = l }
+                                    { model | currentNode = l, questionCount = model.questionCount + 1 }
 
                 GotQuestion ->
                     let
@@ -142,6 +146,7 @@ update msg model =
                 , currentNode = model.tree
                 , questionFieldText = ""
                 , movieFieldText = ""
+                , questionCount = 1
             }
 
 
@@ -181,7 +186,7 @@ view model =
             , case model.state of
                 Won ->
                     column [ centerX, width fill, spacing 20 ]
-                        [ el [] (text "Yay! I guessed right!")
+                        [ el [] (text <| "Yay! I guessed right in " ++ String.fromInt model.questionCount ++ " questions!")
                         , primaryButton "Play Again" PlayAgainButtonPressed
                         ]
 
@@ -259,13 +264,17 @@ view model =
                                 case l of
                                     Empty ->
                                         paragraph []
-                                            [ text <| "Is it the movie "
+                                            [ text <| "Q" ++ String.fromInt model.questionCount ++ ": "
+                                            , text <| "Is it the movie "
                                             , el [ Font.semiBold, Font.italic ] (text n)
                                             , text "?"
                                             ]
 
                                     _ ->
-                                        text n
+                                        paragraph []
+                                            [ text <| "Q" ++ String.fromInt model.questionCount ++ ": "
+                                            , text n
+                                            ]
                         , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
                             [ primaryButton "Yes" YesButtonPressed
                             , primaryButton "No" NoButtonPressed
