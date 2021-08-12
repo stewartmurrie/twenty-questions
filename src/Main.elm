@@ -1,7 +1,10 @@
 module Main exposing (main)
 
 import Browser
-import Element exposing (centerX, column, el, fill, row, spacing, text, width)
+import Element exposing (Color, Element, centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
+import Element.Background exposing (color)
+import Element.Border exposing (rounded)
+import Element.Font as Font
 import Element.Input as Input exposing (button)
 import Html exposing (Html)
 import Html.Events
@@ -165,15 +168,21 @@ onEnter msg =
 
 view : Model -> Html Msg
 view model =
-    Element.layout [ centerX, width fill ] <|
+    Element.layout [ centerX, color (rgb255 220 220 220), padding 20 ] <|
         column
             [ centerX ]
-            [ el [ centerX ] <| text <| "20 Movie Questions"
+            [ el [ centerX ] <|
+                el
+                    [ Font.size 48
+                    , Font.bold
+                    , paddingXY 0 50
+                    ]
+                    (text "20 Movie Questions")
             , case model.state of
                 Won ->
-                    column []
-                        [ text "Yay! I guessed right!"
-                        , button [] { onPress = Just PlayAgainButtonPressed, label = text "Play Again" }
+                    column [ centerX, width fill, spacing 20 ]
+                        [ el [] (text "Yay! I guessed right!")
+                        , primaryButton "Play Again" PlayAgainButtonPressed
                         ]
 
                 Lost ->
@@ -188,13 +197,24 @@ view model =
                         ]
 
                 GotMovie ->
-                    column []
+                    column [ width fill, spacing 20 ]
                         [ case model.currentNode of
                             Empty ->
                                 text "This should not be possible!"
 
                             Node v _ _ ->
-                                text <| "What question would distinguish " ++ model.movieFieldText ++ " from " ++ v ++ "?"
+                                paragraph [ centerX, width fill ]
+                                    [ text <|
+                                        "What question would distinguish "
+                                    , el [ Font.semiBold, Font.italic ]
+                                        (text <|
+                                            model.movieFieldText
+                                        )
+                                    , text <|
+                                        " from "
+                                    , el [ Font.semiBold, Font.italic ] (text v)
+                                    , text "?"
+                                    ]
                         , Input.text [ onEnter QuestionWasEntered ]
                             { text = model.questionFieldText
                             , placeholder = Nothing
@@ -205,38 +225,70 @@ view model =
 
                 GotQuestion ->
                     column []
-                        [ text <| "If I asked the question '" ++ model.questionFieldText ++ "' about " ++ model.movieFieldText ++ ", what would the answer be?"
-                        , row [ centerX, spacing 50 ]
-                            [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
-                            , button [] { onPress = Just NoButtonPressed, label = text "No" }
+                        [ paragraph []
+                            [ text <| "If I asked the question "
+                            , el [ Font.italic ] (text <| "'" ++ model.questionFieldText ++ "'")
+                            , text <| " about "
+                            , el [ Font.italic, Font.semiBold ] (text model.movieFieldText)
+                            , text <|
+                                ", what would the answer be?"
+                            ]
+                        , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
+                            [ primaryButton "Yes" YesButtonPressed
+                            , primaryButton "No" NoButtonPressed
                             ]
                         ]
 
                 MovieAdded ->
-                    column []
-                        [ text <| "Ok! I'll remember " ++ model.movieFieldText ++ " for next time."
-                        , button [] { onPress = Just PlayAgainButtonPressed, label = text "Play Again" }
+                    column [ centerX, width fill, spacing 20 ]
+                        [ paragraph []
+                            [ text <| "Ok! I'll remember "
+                            , el [ Font.italic, Font.semiBold ] (text model.movieFieldText)
+                            , text " for next time."
+                            ]
+                        , primaryButton "Play Again" PlayAgainButtonPressed
                         ]
 
                 Running ->
-                    column []
+                    column [ centerX, width fill ]
                         [ case model.currentNode of
                             Empty ->
                                 text "This shouldn't happen!"
 
-                            Node n l r ->
+                            Node n l _ ->
                                 case l of
                                     Empty ->
-                                        text <| "Is it " ++ n ++ "?"
+                                        paragraph []
+                                            [ text <| "Is it the movie "
+                                            , el [ Font.semiBold, Font.italic ] (text n)
+                                            , text "?"
+                                            ]
 
                                     _ ->
                                         text n
-                        , row [ centerX, spacing 50 ]
-                            [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
-                            , button [] { onPress = Just NoButtonPressed, label = text "No" }
+                        , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
+                            [ primaryButton "Yes" YesButtonPressed
+                            , primaryButton "No" NoButtonPressed
                             ]
                         ]
             ]
+
+
+primaryButton : String -> Msg -> Element Msg
+primaryButton label msg =
+    button
+        [ paddingXY 30 15
+        , color (rgb255 176 67 138)
+        , rounded 5
+        , Font.color (rgb 1 1 1)
+        , width fill
+        , centerX
+        , centerY
+        , height (80 |> px)
+        ]
+        { onPress = Just msg
+        , label = el [ centerX, Font.bold, Font.size 24 ] (text label)
+        }
 
 
 
