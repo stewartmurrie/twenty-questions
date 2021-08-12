@@ -3,20 +3,16 @@ module Main exposing (main)
 import Browser
 import Element exposing (centerX, column, el, fill, row, spacing, text, width)
 import Element.Input as Input exposing (button)
-import Html exposing (Html)
+import Html exposing (Html, a)
 import Html.Events
 import Json.Decode as Decode
+import QuestionTree exposing (QuestionTree(..))
 
 
 
 -- MODEL
 -- 20Q I think is represented by a binary tree. Each node is a question, with YES or NO branches.
 -- Leaf nodes represent answers?
-
-
-type Tree a
-    = Empty
-    | Node a (Tree a) (Tree a)
 
 
 type State
@@ -37,15 +33,15 @@ type Msg
 
 
 type alias Model =
-    { tree : Tree String
-    , currentNode : Tree String
+    { tree : QuestionTree
+    , currentNode : QuestionTree
     , state : State
     , movieFieldText : String
     , questionFieldText : String
     }
 
 
-initialTree : Tree String
+initialTree : QuestionTree
 initialTree =
     Node "Does it star Arnold Schwarzenegger?" (Node "RoboCop" Empty Empty) (Node "The Terminator" Empty Empty)
 
