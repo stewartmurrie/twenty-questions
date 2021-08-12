@@ -2,8 +2,10 @@ module Main exposing (main)
 
 import Browser
 import Element exposing (centerX, column, el, fill, row, spacing, text, width)
-import Element.Input exposing (button)
+import Element.Input as Input exposing (button)
 import Html exposing (Html)
+import Html.Events
+import Json.Decode as Decode
 
 
 
@@ -21,28 +23,41 @@ type State
     = Running
     | Won
     | Lost
+    | GotMovie
+    | GotQuestion
 
 
 type Msg
     = YesButtonPressed
     | NoButtonPressed
+    | MovieFieldUpdated String
+    | QuestionFieldUpdated String
+    | MovieWasEntered
+    | QuestionWasEntered
 
 
 type alias Model =
     { tree : Tree String
     , currentNode : Tree String
     , state : State
+    , movieFieldText : String
+    , questionFieldText : String
     }
 
 
 initialTree : Tree String
 initialTree =
-    Node "Does it star Arnold Swarzenegger?" (Node "RoboCop" Empty Empty) (Node "The Terminator" Empty Empty)
+    Node "Does it star Arnold Schwarzenegger?" (Node "RoboCop" Empty Empty) (Node "The Terminator" Empty Empty)
 
 
 init : Model
 init =
-    { tree = initialTree, currentNode = initialTree, state = Running }
+    { tree = initialTree
+    , currentNode = initialTree
+    , state = Running
+    , movieFieldText = ""
+    , questionFieldText = ""
+    }
 
 
 
@@ -78,6 +93,35 @@ update msg model =
                         Node _ _ _ ->
                             { model | currentNode = l }
 
+        MovieFieldUpdated t ->
+            { model | movieFieldText = t }
+
+        MovieWasEntered ->
+            { model | state = GotMovie }
+
+        QuestionFieldUpdated t ->
+            { model | questionFieldText = t }
+
+        QuestionWasEntered ->
+            { model | state = GotQuestion }
+
+
+onEnter : msg -> Element.Attribute msg
+onEnter msg =
+    Element.htmlAttribute
+        (Html.Events.on "keyup"
+            (Decode.field "key" Decode.string
+                |> Decode.andThen
+                    (\key ->
+                        if key == "Enter" then
+                            Decode.succeed msg
+
+                        else
+                            Decode.fail "Not the enter key"
+                    )
+            )
+        )
+
 
 
 -- VIEW
@@ -94,7 +138,40 @@ view model =
                     text "Yay! I guessed right!"
 
                 Lost ->
-                    text "Bummer! I got it wrong."
+                    column []
+                        [ text "Bummer! I got it wrong."
+                        , Input.text [ onEnter MovieWasEntered ]
+                            { text = model.movieFieldText
+                            , placeholder = Nothing
+                            , label = Input.labelLeft [] (text "What movie are you thinking of?")
+                            , onChange = MovieFieldUpdated
+                            }
+                        ]
+
+                GotMovie ->
+                    column []
+                        [ case model.currentNode of
+                            Empty ->
+                                text "This should not be possible!"
+
+                            Node v _ _ ->
+                                text <| "What question would distinguish " ++ model.movieFieldText ++ " from " ++ v ++ "?"
+                        , Input.text [ onEnter QuestionWasEntered ]
+                            { text = model.questionFieldText
+                            , placeholder = Nothing
+                            , label = Input.labelLeft [] (text "")
+                            , onChange = QuestionFieldUpdated
+                            }
+                        ]
+
+                GotQuestion ->
+                    column []
+                        [ text <| "If I asked the question " ++ model.questionFieldText ++ " about " ++ model.movieFieldText ++ ", what would the answer be?"
+                        , row [ centerX, spacing 50 ]
+                            [ button [] { onPress = Just YesButtonPressed, label = text "Yes" }
+                            , button [] { onPress = Just NoButtonPressed, label = text "No" }
+                            ]
+                        ]
 
                 -- TODO: ask questions to grow the knowledge graph
                 Running ->
