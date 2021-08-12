@@ -1,5 +1,5 @@
 # 20 Questions
-## Dolby Edition
+## Movie Edition
 
 Written in Elm, inspired by http://openbookproject.net/py4fun/animal/animal.html
 
