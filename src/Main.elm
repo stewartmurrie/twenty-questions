@@ -277,11 +277,7 @@ view model =
 
                 Running ->
                     column [ centerX, width fill ]
-                        [ column []
-                            (model.questionLog
-                                |> List.reverse
-                                |> List.indexedMap (\i q -> text <| "Q" ++ String.fromInt (i + 1) ++ ": " ++ q)
-                            )
+                        [ viewQuestionLog model.questionLog
                         , case model.currentNode of
                             Empty ->
                                 -- Should be impossible
@@ -308,6 +304,15 @@ view model =
                             ]
                         ]
             ]
+
+
+viewQuestionLog : List String -> Element Msg
+viewQuestionLog log =
+    column []
+        (log
+            |> List.reverse
+            |> List.indexedMap (\i q -> text <| "Q" ++ String.fromInt (i + 1) ++ ": " ++ q)
+        )
 
 
 viewQuestionCount : List String -> String
