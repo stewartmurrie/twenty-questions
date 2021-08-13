@@ -43,7 +43,7 @@ type alias Model =
     , state : State
     , movieFieldText : String
     , questionFieldText : String
-    , questionLog : List String
+    , questionLog : List String -- TODO: consider replacing this with a list of nodes, or path through the tree
     }
 
 
