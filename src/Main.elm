@@ -44,6 +44,7 @@ type alias Model =
     , movieFieldText : String
     , questionFieldText : String
     , questionCount : Int
+    , questionLog : List String
     }
 
 
@@ -60,6 +61,7 @@ init =
     , movieFieldText = ""
     , questionFieldText = ""
     , questionCount = 1
+    , questionLog = []
     }
 
 
@@ -78,13 +80,19 @@ update msg model =
                             -- Should be impossible!
                             { model | currentNode = Empty }
 
-                        Node _ _ r ->
-                            case r of
+                        Node question _ right ->
+                            case right of
                                 Empty ->
+                                    -- Our question was a leaf node, and we guessed right!
                                     { model | state = Won }
 
                                 Node _ _ _ ->
-                                    { model | currentNode = r, questionCount = model.questionCount + 1 }
+                                    -- Our question was a regular node, so traverse to the right
+                                    { model
+                                        | currentNode = right
+                                        , questionCount = model.questionCount + 1
+                                        , questionLog = question :: model.questionLog
+                                    }
 
                 GotQuestion ->
                     let
@@ -107,13 +115,19 @@ update msg model =
                             -- Should be impossible!
                             { model | currentNode = Empty }
 
-                        Node _ l _ ->
-                            case l of
+                        Node question left _ ->
+                            case left of
                                 Empty ->
+                                    -- Our question was a leaf node, and our guess was wrong :(
                                     { model | state = Lost }
 
                                 Node _ _ _ ->
-                                    { model | currentNode = l, questionCount = model.questionCount + 1 }
+                                    -- Our question was a regular node, so traverse left
+                                    { model
+                                        | currentNode = left
+                                        , questionCount = model.questionCount + 1
+                                        , questionLog = question :: model.questionLog
+                                    }
 
                 GotQuestion ->
                     let
@@ -155,6 +169,7 @@ update msg model =
                 , questionFieldText = ""
                 , movieFieldText = ""
                 , questionCount = 1
+                , questionLog = []
             }
 
 
@@ -267,7 +282,12 @@ view model =
 
                 Running ->
                     column [ centerX, width fill ]
-                        [ case model.currentNode of
+                        [ column []
+                            (model.questionLog
+                                |> List.reverse
+                                |> List.indexedMap (\i q -> text <| "Q" ++ String.fromInt (i + 1) ++ ": " ++ q)
+                            )
+                        , case model.currentNode of
                             Empty ->
                                 -- Should be impossible
                                 text "This shouldn't happen!"
