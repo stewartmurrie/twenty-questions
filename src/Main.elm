@@ -316,10 +316,10 @@ view model =
 
 viewQuestionLog : List String -> Element Msg
 viewQuestionLog log =
-    column []
+    column [ spacing 10 ]
         (log
             |> List.reverse
-            |> List.indexedMap (\i q -> text <| "Q" ++ String.fromInt (i + 1) ++ ": " ++ q)
+            |> List.indexedMap (\i q -> el [] <| text <| "Q" ++ String.fromInt (i + 1) ++ ": " ++ q)
         )
 
 
