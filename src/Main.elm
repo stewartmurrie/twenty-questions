@@ -43,7 +43,6 @@ type alias Model =
     , state : State
     , movieFieldText : String
     , questionFieldText : String
-    , questionCount : Int
     , questionLog : List String
     }
 
@@ -60,7 +59,6 @@ init =
     , state = Running
     , movieFieldText = ""
     , questionFieldText = ""
-    , questionCount = 1
     , questionLog = []
     }
 
@@ -90,7 +88,6 @@ update msg model =
                                     -- Our question was a regular node, so traverse to the right
                                     { model
                                         | currentNode = right
-                                        , questionCount = model.questionCount + 1
                                         , questionLog = question :: model.questionLog
                                     }
 
@@ -125,7 +122,6 @@ update msg model =
                                     -- Our question was a regular node, so traverse left
                                     { model
                                         | currentNode = left
-                                        , questionCount = model.questionCount + 1
                                         , questionLog = question :: model.questionLog
                                     }
 
@@ -168,7 +164,6 @@ update msg model =
                 , currentNode = model.tree
                 , questionFieldText = ""
                 , movieFieldText = ""
-                , questionCount = 1
                 , questionLog = []
             }
 
@@ -209,7 +204,7 @@ view model =
             , case model.state of
                 Won ->
                     column [ centerX, width fill, spacing 20 ]
-                        [ el [] (text <| "Yay! I guessed right in " ++ String.fromInt model.questionCount ++ " questions!")
+                        [ el [] (text <| "Yay! I guessed right in " ++ viewQuestionCount model.questionLog ++ " questions!")
                         , primaryButton "Play Again" PlayAgainButtonPressed
                         ]
 
@@ -296,7 +291,7 @@ view model =
                                 case l of
                                     Empty ->
                                         paragraph []
-                                            [ text <| "Q" ++ String.fromInt model.questionCount ++ ": "
+                                            [ text <| "Q" ++ viewQuestionCount model.questionLog ++ ": "
                                             , text <| "Is it the movie "
                                             , el [ Font.semiBold, Font.italic ] (text n)
                                             , text "?"
@@ -304,7 +299,7 @@ view model =
 
                                     _ ->
                                         paragraph []
-                                            [ text <| "Q" ++ String.fromInt model.questionCount ++ ": "
+                                            [ text <| "Q" ++ viewQuestionCount model.questionLog ++ ": "
                                             , text n
                                             ]
                         , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
@@ -313,6 +308,11 @@ view model =
                             ]
                         ]
             ]
+
+
+viewQuestionCount : List String -> String
+viewQuestionCount log =
+    log |> List.length |> (+) 1 |> String.fromInt
 
 
 primaryButton : String -> Msg -> Element Msg
