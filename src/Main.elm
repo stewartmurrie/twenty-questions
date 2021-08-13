@@ -82,13 +82,16 @@ update msg model =
                             case right of
                                 Empty ->
                                     -- Our question was a leaf node, and we guessed right!
-                                    { model | state = Won }
+                                    { model
+                                        | state = Won
+                                        , questionLog = ("Is it the movie " ++ question ++ "? YES") :: model.questionLog
+                                    }
 
                                 Node _ _ _ ->
                                     -- Our question was a regular node, so traverse to the right
                                     { model
                                         | currentNode = right
-                                        , questionLog = question :: model.questionLog
+                                        , questionLog = (question ++ " YES") :: model.questionLog
                                     }
 
                 GotQuestion ->
@@ -116,13 +119,16 @@ update msg model =
                             case left of
                                 Empty ->
                                     -- Our question was a leaf node, and our guess was wrong :(
-                                    { model | state = Lost }
+                                    { model
+                                        | state = Lost
+                                        , questionLog = ("Is it the movie " ++ question ++ "? NO") :: model.questionLog
+                                    }
 
                                 Node _ _ _ ->
                                     -- Our question was a regular node, so traverse left
                                     { model
                                         | currentNode = left
-                                        , questionLog = question :: model.questionLog
+                                        , questionLog = (question ++ " NO") :: model.questionLog
                                     }
 
                 GotQuestion ->
@@ -204,13 +210,15 @@ view model =
             , case model.state of
                 Won ->
                     column [ centerX, width fill, spacing 20 ]
-                        [ el [] (text <| "Yay! I guessed right in " ++ viewQuestionCount model.questionLog ++ " questions!")
+                        [ viewQuestionLog model.questionLog
+                        , el [] (text <| "Yay! I guessed right!")
                         , primaryButton "Play Again" PlayAgainButtonPressed
                         ]
 
                 Lost ->
                     column [ width fill, spacing 20 ]
-                        [ text "Bummer! I got it wrong."
+                        [ viewQuestionLog model.questionLog
+                        , text "Bummer! I got it wrong."
                         , Input.text [ onEnter MovieWasEntered, spacing 10 ]
                             { text = model.movieFieldText
                             , placeholder = Nothing
