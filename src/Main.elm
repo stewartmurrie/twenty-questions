@@ -43,7 +43,7 @@ type alias Model =
     , state : State
     , movieFieldText : String
     , questionFieldText : String
-    , questionCount : Int
+    , questionLog : List String -- TODO: consider replacing this with a list of nodes, or path through the tree
     }
 
 
@@ -59,7 +59,7 @@ init =
     , state = Running
     , movieFieldText = ""
     , questionFieldText = ""
-    , questionCount = 1
+    , questionLog = []
     }
 
 
@@ -78,13 +78,21 @@ update msg model =
                             -- Should be impossible!
                             { model | currentNode = Empty }
 
-                        Node _ _ r ->
-                            case r of
+                        Node question _ right ->
+                            case right of
                                 Empty ->
-                                    { model | state = Won }
+                                    -- Our question was a leaf node, and we guessed right!
+                                    { model
+                                        | state = Won
+                                        , questionLog = ("Is it the movie " ++ question ++ "? YES") :: model.questionLog
+                                    }
 
                                 Node _ _ _ ->
-                                    { model | currentNode = r, questionCount = model.questionCount + 1 }
+                                    -- Our question was a regular node, so traverse to the right
+                                    { model
+                                        | currentNode = right
+                                        , questionLog = (question ++ " YES") :: model.questionLog
+                                    }
 
                 GotQuestion ->
                     let
@@ -107,13 +115,21 @@ update msg model =
                             -- Should be impossible!
                             { model | currentNode = Empty }
 
-                        Node _ l _ ->
-                            case l of
+                        Node question left _ ->
+                            case left of
                                 Empty ->
-                                    { model | state = Lost }
+                                    -- Our question was a leaf node, and our guess was wrong :(
+                                    { model
+                                        | state = Lost
+                                        , questionLog = ("Is it the movie " ++ question ++ "? NO") :: model.questionLog
+                                    }
 
                                 Node _ _ _ ->
-                                    { model | currentNode = l, questionCount = model.questionCount + 1 }
+                                    -- Our question was a regular node, so traverse left
+                                    { model
+                                        | currentNode = left
+                                        , questionLog = (question ++ " NO") :: model.questionLog
+                                    }
 
                 GotQuestion ->
                     let
@@ -154,7 +170,7 @@ update msg model =
                 , currentNode = model.tree
                 , questionFieldText = ""
                 , movieFieldText = ""
-                , questionCount = 1
+                , questionLog = []
             }
 
 
@@ -194,13 +210,15 @@ view model =
             , case model.state of
                 Won ->
                     column [ centerX, width fill, spacing 20 ]
-                        [ el [] (text <| "Yay! I guessed right in " ++ String.fromInt model.questionCount ++ " questions!")
+                        [ viewQuestionLog model.questionLog
+                        , el [] (text <| "Yay! I guessed right!")
                         , primaryButton "Play Again" PlayAgainButtonPressed
                         ]
 
                 Lost ->
                     column [ width fill, spacing 20 ]
-                        [ text "Bummer! I got it wrong."
+                        [ viewQuestionLog model.questionLog
+                        , text "Bummer! I got it wrong."
                         , Input.text [ onEnter MovieWasEntered, spacing 10 ]
                             { text = model.movieFieldText
                             , placeholder = Nothing
@@ -267,7 +285,8 @@ view model =
 
                 Running ->
                     column [ centerX, width fill ]
-                        [ case model.currentNode of
+                        [ viewQuestionLog model.questionLog
+                        , case model.currentNode of
                             Empty ->
                                 -- Should be impossible
                                 text "This shouldn't happen!"
@@ -276,7 +295,7 @@ view model =
                                 case l of
                                     Empty ->
                                         paragraph []
-                                            [ text <| "Q" ++ String.fromInt model.questionCount ++ ": "
+                                            [ text <| "Q" ++ viewQuestionCount model.questionLog ++ ": "
                                             , text <| "Is it the movie "
                                             , el [ Font.semiBold, Font.italic ] (text n)
                                             , text "?"
@@ -284,7 +303,7 @@ view model =
 
                                     _ ->
                                         paragraph []
-                                            [ text <| "Q" ++ String.fromInt model.questionCount ++ ": "
+                                            [ text <| "Q" ++ viewQuestionCount model.questionLog ++ ": "
                                             , text n
                                             ]
                         , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
@@ -293,6 +312,20 @@ view model =
                             ]
                         ]
             ]
+
+
+viewQuestionLog : List String -> Element Msg
+viewQuestionLog log =
+    column []
+        (log
+            |> List.reverse
+            |> List.indexedMap (\i q -> text <| "Q" ++ String.fromInt (i + 1) ++ ": " ++ q)
+        )
+
+
+viewQuestionCount : List String -> String
+viewQuestionCount log =
+    log |> List.length |> (+) 1 |> String.fromInt
 
 
 primaryButton : String -> Msg -> Element Msg
