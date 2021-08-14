@@ -35,7 +35,7 @@ app =
 
 initialTree : QuestionTree
 initialTree =
-    Node "Does it star Arnold Schwarzenegger?" (Node "RoboCop" Empty Empty) (Node "The Terminator" Empty Empty)
+    Node "The Terminator" Empty Empty
 
 
 init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
@@ -94,11 +94,12 @@ update msg model =
                         newTree =
                             addKnowledge model.questionFieldText model.movieFieldText model.currentNode Yes model.tree
                     in
-                    noCmd
-                        { model
-                            | state = MovieAdded
-                            , tree = newTree
-                        }
+                    ( { model
+                        | state = MovieAdded
+                        , tree = newTree
+                      }
+                    , Lamdera.sendToBackend (StoreTree newTree)
+                    )
 
                 _ ->
                     noCmd model
@@ -134,11 +135,12 @@ update msg model =
                         newTree =
                             addKnowledge model.questionFieldText model.movieFieldText model.currentNode No model.tree
                     in
-                    noCmd
-                        { model
-                            | state = MovieAdded
-                            , tree = newTree
-                        }
+                    ( { model
+                        | state = MovieAdded
+                        , tree = newTree
+                      }
+                    , Lamdera.sendToBackend (StoreTree newTree)
+                    )
 
                 _ ->
                     noCmd model
@@ -164,14 +166,15 @@ update msg model =
             noCmd { model | state = GotQuestion, questionFieldText = question }
 
         PlayAgainButtonPressed ->
-            noCmd
-                { model
-                    | state = Running
-                    , currentNode = model.tree
-                    , questionFieldText = ""
-                    , movieFieldText = ""
-                    , questionLog = []
-                }
+            ( { model
+                | state = Running
+                , currentNode = model.tree
+                , questionFieldText = ""
+                , movieFieldText = ""
+                , questionLog = []
+              }
+            , Lamdera.sendToBackend GetTree
+            )
 
         UrlChanged _ ->
             noCmd model

@@ -38,3 +38,6 @@ updateFromFrontend sessionId clientId msg model =
     case msg of
         GetTree ->
             ( model, sendToFrontend clientId (TreeSent model.tree) )
+
+        StoreTree tree ->
+            ( { model | tree = tree }, Cmd.none )

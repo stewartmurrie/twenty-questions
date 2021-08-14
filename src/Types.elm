@@ -46,6 +46,7 @@ type FrontendMsg
 
 type ToBackend
     = GetTree
+    | StoreTree QuestionTree
 
 
 type BackendMsg
