@@ -7,7 +7,8 @@ import Url exposing (Url)
 
 
 type GameState
-    = Running
+    = InLobby
+    | Running
     | Won
     | Lost
     | GotMovie

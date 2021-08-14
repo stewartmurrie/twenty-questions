@@ -2,13 +2,11 @@ module Frontend exposing (..)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
-import Element exposing (Color, Element, centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
+import Element exposing (Element, centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
 import Element.Background exposing (color)
 import Element.Border exposing (rounded)
 import Element.Font as Font
 import Element.Input as Input exposing (button)
-import Html
-import Html.Attributes as Attr
 import Html.Events
 import Json.Decode as Decode
 import Lamdera
@@ -28,7 +26,7 @@ app =
         , onUrlChange = UrlChanged
         , update = update
         , updateFromBackend = updateFromBackend
-        , subscriptions = \m -> Sub.none
+        , subscriptions = \_ -> Sub.none
         , view = view
         }
 
@@ -43,12 +41,12 @@ init url key =
     ( { key = key
       , tree = initialTree
       , currentNode = initialTree
-      , state = Running
+      , state = InLobby
       , movieFieldText = ""
       , questionFieldText = ""
       , questionLog = []
       }
-    , Lamdera.sendToBackend GetTree
+    , Cmd.none
     )
 
 
@@ -211,8 +209,17 @@ view model =
                         , Font.bold
                         , paddingXY 0 50
                         ]
-                        (text "20 Movie Questions")
+                        (text "Movie Q's!")
                 , case model.state of
+                    InLobby ->
+                        column [ width fill, spacing 20 ]
+                            [ text "How to Play"
+                            , text "Think of a movie. I'll try to guess the title by asking questions, and you answer with YES or NO."
+                            , text "If I get it wrong, you can tell me what movie you were thinking of and I'll remember it for next time."
+                            , text "Ready to play?"
+                            , primaryButton "Start" PlayAgainButtonPressed
+                            ]
+
                     Won ->
                         column [ centerX, width fill, spacing 20 ]
                             [ viewQuestionLog model.questionLog
