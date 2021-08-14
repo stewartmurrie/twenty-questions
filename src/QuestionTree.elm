@@ -18,23 +18,3 @@ type QuestionTree
 type Answer
     = No
     | Yes
-
-
-addKnowledge : String -> String -> QuestionTree -> Answer -> QuestionTree -> QuestionTree
-addKnowledge question answer node branch tree =
-    -- TODO: consider replacing this recursive function with a fold
-    case tree of
-        Empty ->
-            Empty
-
-        Node value left right ->
-            if node == tree then
-                case branch of
-                    No ->
-                        Node question (Node answer Empty Empty) node
-
-                    Yes ->
-                        Node question node (Node answer Empty Empty)
-
-            else
-                Node value (addKnowledge question answer node branch left) (addKnowledge question answer node branch right)

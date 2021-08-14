@@ -2,7 +2,7 @@ module Backend exposing (app)
 
 import Array exposing (initialize)
 import Lamdera exposing (ClientId, SessionId, sendToFrontend)
-import QuestionTree exposing (QuestionTree(..))
+import QuestionTree exposing (Answer(..), QuestionTree(..))
 import Types exposing (BackendModel, BackendMsg(..), ToBackend(..), ToFrontend(..))
 
 
@@ -39,5 +39,32 @@ updateFromFrontend sessionId clientId msg model =
         GetTree ->
             ( model, sendToFrontend clientId (TreeSent model.tree) )
 
-        StoreTree tree ->
-            ( { model | tree = tree }, Cmd.none )
+        AddMovie question movie answer node ->
+            ( { model | tree = addKnowledge question movie node answer model.tree }, Cmd.none )
+
+
+addKnowledge : String -> String -> QuestionTree -> Answer -> QuestionTree -> QuestionTree
+addKnowledge question movie node answer tree =
+    -- TODO: consider replacing this recursive function with a fold
+    case tree of
+        Empty ->
+            Empty
+
+        Node value left right ->
+            if node == tree then
+                let
+                    _ =
+                        Debug.log "tree" tree
+
+                    _ =
+                        Debug.log "node" node
+                in
+                case answer of
+                    No ->
+                        Node question (Node movie Empty Empty) node
+
+                    Yes ->
+                        Node question node (Node movie Empty Empty)
+
+            else
+                Node value (addKnowledge question movie node answer left) (addKnowledge question movie node answer right)

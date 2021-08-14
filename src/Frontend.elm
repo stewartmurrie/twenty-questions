@@ -10,7 +10,7 @@ import Element.Input as Input exposing (button)
 import Html.Events
 import Json.Decode as Decode
 import Lamdera
-import QuestionTree exposing (Answer(..), QuestionTree(..), addKnowledge)
+import QuestionTree exposing (Answer(..), QuestionTree(..))
 import Types exposing (..)
 import Url
 
@@ -88,15 +88,10 @@ update msg model =
                                         }
 
                 GotQuestion ->
-                    let
-                        newTree =
-                            addKnowledge model.questionFieldText model.movieFieldText model.currentNode Yes model.tree
-                    in
                     ( { model
                         | state = MovieAdded
-                        , tree = newTree
                       }
-                    , Lamdera.sendToBackend (StoreTree newTree)
+                    , Lamdera.sendToBackend (AddMovie model.questionFieldText model.movieFieldText Yes model.currentNode)
                     )
 
                 _ ->
@@ -129,15 +124,10 @@ update msg model =
                                         }
 
                 GotQuestion ->
-                    let
-                        newTree =
-                            addKnowledge model.questionFieldText model.movieFieldText model.currentNode No model.tree
-                    in
                     ( { model
                         | state = MovieAdded
-                        , tree = newTree
                       }
-                    , Lamdera.sendToBackend (StoreTree newTree)
+                    , Lamdera.sendToBackend (AddMovie model.questionFieldText model.movieFieldText No model.currentNode)
                     )
 
                 _ ->

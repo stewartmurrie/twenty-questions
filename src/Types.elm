@@ -2,7 +2,7 @@ module Types exposing (..)
 
 import Browser exposing (UrlRequest)
 import Browser.Navigation exposing (Key)
-import QuestionTree exposing (QuestionTree)
+import QuestionTree exposing (Answer, QuestionTree)
 import Url exposing (Url)
 
 
@@ -47,7 +47,7 @@ type FrontendMsg
 
 type ToBackend
     = GetTree
-    | StoreTree QuestionTree
+    | AddMovie String String Answer QuestionTree
 
 
 type BackendMsg
