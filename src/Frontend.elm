@@ -213,9 +213,10 @@ view model =
                 , case model.state of
                     InLobby ->
                         column [ width fill, spacing 20 ]
-                            [ text "How to Play"
-                            , text "Think of a movie. I'll try to guess the title by asking questions which you answer with YES or NO."
-                            , text "If I guess wrong, you can tell me what movie you were thinking of and I'll remember it for next time."
+                            [ el [ Font.size 24, Font.bold ] (text "How to Play")
+                            , text "Think of a movie."
+                            , text "I'll try to guess the title by asking questions which you answer with YES or NO."
+                            , text "If I guess wrong, you can tell me your movie and I'll remember it for next time."
                             , text "Ready to play?"
                             , primaryButton "Let's Play!" PlayButtonPressed
                             ]
