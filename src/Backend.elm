@@ -1,8 +1,9 @@
 module Backend exposing (app)
 
 import Array exposing (initialize)
-import Lamdera exposing (ClientId, SessionId)
-import Types exposing (BackendModel, BackendMsg(..), ToBackend(..))
+import Lamdera exposing (ClientId, SessionId, sendToFrontend)
+import QuestionTree exposing (QuestionTree(..))
+import Types exposing (BackendModel, BackendMsg(..), ToBackend(..), ToFrontend(..))
 
 
 type alias Model =
@@ -14,13 +15,13 @@ app =
         { init = init
         , update = update
         , updateFromFrontend = updateFromFrontend
-        , subscriptions = \m -> Sub.none
+        , subscriptions = \_ -> Sub.none
         }
 
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { message = "Hello!" }
+    ( { tree = Node "Does it star Arnie Schwarzenegger?" (Node "RoboCop" Empty Empty) (Node "The Terminator" Empty Empty) }
     , Cmd.none
     )
 
@@ -35,5 +36,5 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
-        NoOpToBackend ->
-            ( model, Cmd.none )
+        GetTree ->
+            ( model, sendToFrontend clientId (TreeSent model.tree) )

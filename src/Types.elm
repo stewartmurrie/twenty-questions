@@ -27,7 +27,7 @@ type alias FrontendModel =
 
 
 type alias BackendModel =
-    { message : String
+    { tree : QuestionTree
     }
 
 
@@ -45,7 +45,7 @@ type FrontendMsg
 
 
 type ToBackend
-    = NoOpToBackend
+    = GetTree
 
 
 type BackendMsg
@@ -53,4 +53,4 @@ type BackendMsg
 
 
 type ToFrontend
-    = NoOpToFrontend
+    = TreeSent QuestionTree

@@ -48,132 +48,151 @@ init url key =
       , questionFieldText = ""
       , questionLog = []
       }
-    , Cmd.none
+    , Lamdera.sendToBackend GetTree
     )
+
+
+noCmd : Model -> ( Model, Cmd FrontendMsg )
+noCmd model =
+    ( model, Cmd.none )
 
 
 update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
 update msg model =
-    let
-        m =
-            case msg of
-                NoOpFrontendMsg ->
-                    model
+    case msg of
+        NoOpFrontendMsg ->
+            noCmd model
 
-                YesButtonPressed ->
-                    case model.state of
-                        Running ->
-                            case model.currentNode of
+        YesButtonPressed ->
+            case model.state of
+                Running ->
+                    case model.currentNode of
+                        Empty ->
+                            -- Should be impossible!
+                            noCmd { model | currentNode = Empty }
+
+                        Node question _ right ->
+                            case right of
                                 Empty ->
-                                    -- Should be impossible!
-                                    { model | currentNode = Empty }
+                                    -- Our question was a leaf node, and we guessed right!
+                                    noCmd
+                                        { model
+                                            | state = Won
+                                            , questionLog = ("Is it the movie " ++ question ++ "? YES") :: model.questionLog
+                                        }
 
-                                Node question _ right ->
-                                    case right of
-                                        Empty ->
-                                            -- Our question was a leaf node, and we guessed right!
-                                            { model
-                                                | state = Won
-                                                , questionLog = ("Is it the movie " ++ question ++ "? YES") :: model.questionLog
-                                            }
+                                Node _ _ _ ->
+                                    -- Our question was a regular node, so traverse to the right
+                                    noCmd
+                                        { model
+                                            | currentNode = right
+                                            , questionLog = (question ++ " YES") :: model.questionLog
+                                        }
 
-                                        Node _ _ _ ->
-                                            -- Our question was a regular node, so traverse to the right
-                                            { model
-                                                | currentNode = right
-                                                , questionLog = (question ++ " YES") :: model.questionLog
-                                            }
-
-                        GotQuestion ->
-                            let
-                                newTree =
-                                    addKnowledge model.questionFieldText model.movieFieldText model.currentNode Yes model.tree
-                            in
-                            { model
-                                | state = MovieAdded
-                                , tree = newTree
-                            }
-
-                        _ ->
-                            model
-
-                NoButtonPressed ->
-                    case model.state of
-                        Running ->
-                            case model.currentNode of
-                                Empty ->
-                                    -- Should be impossible!
-                                    { model | currentNode = Empty }
-
-                                Node question left _ ->
-                                    case left of
-                                        Empty ->
-                                            -- Our question was a leaf node, and our guess was wrong :(
-                                            { model
-                                                | state = Lost
-                                                , questionLog = ("Is it the movie " ++ question ++ "? NO") :: model.questionLog
-                                            }
-
-                                        Node _ _ _ ->
-                                            -- Our question was a regular node, so traverse left
-                                            { model
-                                                | currentNode = left
-                                                , questionLog = (question ++ " NO") :: model.questionLog
-                                            }
-
-                        GotQuestion ->
-                            let
-                                newTree =
-                                    addKnowledge model.questionFieldText model.movieFieldText model.currentNode No model.tree
-                            in
-                            { model
-                                | state = MovieAdded
-                                , tree = newTree
-                            }
-
-                        _ ->
-                            model
-
-                MovieFieldUpdated t ->
-                    { model | movieFieldText = t }
-
-                MovieWasEntered ->
-                    { model | state = GotMovie }
-
-                QuestionFieldUpdated t ->
-                    { model | questionFieldText = t }
-
-                QuestionWasEntered ->
+                GotQuestion ->
                     let
-                        question =
-                            if String.endsWith "?" model.questionFieldText then
-                                model.questionFieldText
-
-                            else
-                                model.questionFieldText ++ "?"
+                        newTree =
+                            addKnowledge model.questionFieldText model.movieFieldText model.currentNode Yes model.tree
                     in
-                    { model | state = GotQuestion, questionFieldText = question }
-
-                PlayAgainButtonPressed ->
-                    { model
-                        | state = Running
-                        , currentNode = model.tree
-                        , questionFieldText = ""
-                        , movieFieldText = ""
-                        , questionLog = []
-                    }
+                    noCmd
+                        { model
+                            | state = MovieAdded
+                            , tree = newTree
+                        }
 
                 _ ->
-                    model
-    in
-    ( m, Cmd.none )
+                    noCmd model
+
+        NoButtonPressed ->
+            case model.state of
+                Running ->
+                    case model.currentNode of
+                        Empty ->
+                            -- Should be impossible!
+                            noCmd { model | currentNode = Empty }
+
+                        Node question left _ ->
+                            case left of
+                                Empty ->
+                                    -- Our question was a leaf node, and our guess was wrong :(
+                                    noCmd
+                                        { model
+                                            | state = Lost
+                                            , questionLog = ("Is it the movie " ++ question ++ "? NO") :: model.questionLog
+                                        }
+
+                                Node _ _ _ ->
+                                    -- Our question was a regular node, so traverse left
+                                    noCmd
+                                        { model
+                                            | currentNode = left
+                                            , questionLog = (question ++ " NO") :: model.questionLog
+                                        }
+
+                GotQuestion ->
+                    let
+                        newTree =
+                            addKnowledge model.questionFieldText model.movieFieldText model.currentNode No model.tree
+                    in
+                    noCmd
+                        { model
+                            | state = MovieAdded
+                            , tree = newTree
+                        }
+
+                _ ->
+                    noCmd model
+
+        MovieFieldUpdated t ->
+            noCmd { model | movieFieldText = t }
+
+        MovieWasEntered ->
+            noCmd { model | state = GotMovie }
+
+        QuestionFieldUpdated t ->
+            noCmd { model | questionFieldText = t }
+
+        QuestionWasEntered ->
+            let
+                question =
+                    if String.endsWith "?" model.questionFieldText then
+                        model.questionFieldText
+
+                    else
+                        model.questionFieldText ++ "?"
+            in
+            noCmd { model | state = GotQuestion, questionFieldText = question }
+
+        PlayAgainButtonPressed ->
+            noCmd
+                { model
+                    | state = Running
+                    , currentNode = model.tree
+                    , questionFieldText = ""
+                    , movieFieldText = ""
+                    , questionLog = []
+                }
+
+        UrlChanged _ ->
+            noCmd model
+
+        UrlClicked _ ->
+            noCmd model
 
 
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
     case msg of
-        NoOpToFrontend ->
-            ( model, Cmd.none )
+        TreeSent tree ->
+            noCmd
+                { model
+                    | state = Running
+                    , tree = tree
+                    , currentNode = tree
+                    , questionFieldText = ""
+                    , movieFieldText = ""
+                    , questionLog = []
+                }
 
 
 view : Model -> Browser.Document FrontendMsg
