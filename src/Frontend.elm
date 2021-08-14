@@ -163,7 +163,7 @@ update msg model =
             in
             noCmd { model | state = GotQuestion, questionFieldText = question }
 
-        PlayAgainButtonPressed ->
+        PlayButtonPressed ->
             ( { model
                 | state = Running
                 , currentNode = model.tree
@@ -214,17 +214,17 @@ view model =
                     InLobby ->
                         column [ width fill, spacing 20 ]
                             [ text "How to Play"
-                            , text "Think of a movie. I'll try to guess the title by asking questions, and you answer with YES or NO."
-                            , text "If I get it wrong, you can tell me what movie you were thinking of and I'll remember it for next time."
+                            , text "Think of a movie. I'll try to guess the title by asking questions which you answer with YES or NO."
+                            , text "If I guess wrong, you can tell me what movie you were thinking of and I'll remember it for next time."
                             , text "Ready to play?"
-                            , primaryButton "Start" PlayAgainButtonPressed
+                            , primaryButton "Let's Play!" PlayButtonPressed
                             ]
 
                     Won ->
                         column [ centerX, width fill, spacing 20 ]
                             [ viewQuestionLog model.questionLog
                             , el [] (text <| "Yay! I guessed right!")
-                            , primaryButton "Play Again" PlayAgainButtonPressed
+                            , primaryButton "Play Again" PlayButtonPressed
                             ]
 
                     Lost ->
@@ -292,7 +292,7 @@ view model =
                                 , el [ Font.italic, Font.semiBold ] (text model.movieFieldText)
                                 , text " for next time."
                                 ]
-                            , primaryButton "Play Again" PlayAgainButtonPressed
+                            , primaryButton "Play Again" PlayButtonPressed
                             ]
 
                     Running ->

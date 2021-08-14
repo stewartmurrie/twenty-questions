@@ -40,7 +40,7 @@ type FrontendMsg
     | QuestionFieldUpdated String
     | MovieWasEntered
     | QuestionWasEntered
-    | PlayAgainButtonPressed
+    | PlayButtonPressed
     | UrlClicked UrlRequest
     | UrlChanged Url
 
