@@ -29,13 +29,6 @@ addKnowledge question movie node answer tree =
 
         Node value left right ->
             if node == tree then
-                let
-                    _ =
-                        Debug.log "tree" tree
-
-                    _ =
-                        Debug.log "node" node
-                in
                 case answer of
                     No ->
                         Node question (Node movie Empty Empty) node
