@@ -33,7 +33,7 @@ app =
 
 initialTree : QuestionTree
 initialTree =
-    Node "The Terminator" Empty Empty
+    Empty
 
 
 init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )

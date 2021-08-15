@@ -18,3 +18,30 @@ type QuestionTree
 type Answer
     = No
     | Yes
+
+
+addKnowledge : String -> String -> QuestionTree -> Answer -> QuestionTree -> QuestionTree
+addKnowledge question movie node answer tree =
+    -- TODO: consider replacing this recursive function with a fold
+    case tree of
+        Empty ->
+            Empty
+
+        Node value left right ->
+            if node == tree then
+                let
+                    _ =
+                        Debug.log "tree" tree
+
+                    _ =
+                        Debug.log "node" node
+                in
+                case answer of
+                    No ->
+                        Node question (Node movie Empty Empty) node
+
+                    Yes ->
+                        Node question node (Node movie Empty Empty)
+
+            else
+                Node value (addKnowledge question movie node answer left) (addKnowledge question movie node answer right)
