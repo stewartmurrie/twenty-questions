@@ -88,6 +88,8 @@ update msg model =
                                         }
 
                 GotQuestion ->
+                    -- The player entered a movie and a question and confirmed it was right.
+                    -- Add the movie to the database.
                     ( { model
                         | state = MovieAdded
                       }
@@ -124,11 +126,12 @@ update msg model =
                                         }
 
                 GotQuestion ->
-                    ( { model
-                        | state = MovieAdded
-                      }
-                    , Lamdera.sendToBackend (AddMovie model.questionFieldText model.movieFieldText No model.currentNode)
-                    )
+                    -- The player entered a movie and a question, but didn't like it.
+                    -- Allow them to edit the question.
+                    noCmd
+                        { model
+                            | state = EditQuestion
+                        }
 
                 _ ->
                     noCmd model
@@ -177,6 +180,7 @@ updateFromBackend msg model =
         TreeSent tree ->
             noCmd
                 { model
+                  -- TODO: this reset appears under PlayButtonPressed above. Factor it out.
                     | state = Running
                     , tree = tree
                     , currentNode = tree
@@ -245,15 +249,15 @@ view model =
                                             Input.labelAbove [ spacing 20 ]
                                                 (paragraph [ centerX, width fill ]
                                                     [ text <|
-                                                        "What question would distinguish "
+                                                        "What question about "
                                                     , el [ Font.semiBold, Font.italic ]
                                                         (text <|
                                                             model.movieFieldText
                                                         )
                                                     , text <|
-                                                        " from "
+                                                        " could I ask to distinguish it from "
                                                     , el [ Font.semiBold, Font.italic ] (text v)
-                                                    , text "?"
+                                                    , text "? (It should be one that can be answered with YES)"
                                                     ]
                                                 )
                                         , onChange = QuestionFieldUpdated
@@ -263,17 +267,48 @@ view model =
                     GotQuestion ->
                         column []
                             [ paragraph []
-                                [ text <| "If I asked the question "
-                                , el [ Font.italic ] (text <| "'" ++ model.questionFieldText ++ "'")
-                                , text <| " about "
+                                [ text <| "Let me make sure I understand."
+                                , text <| "For the movie "
                                 , el [ Font.italic, Font.semiBold ] (text model.movieFieldText)
-                                , text <|
-                                    ", what would the answer be?"
+                                , text <| " the answer to the question "
+                                , el [ Font.italic ] (text <| "'" ++ model.questionFieldText ++ "'")
+                                , text <| " is YES. Correct?"
                                 ]
                             , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
-                                [ primaryButton "Yes" YesButtonPressed
-                                , primaryButton "No" NoButtonPressed
+                                [ primaryButton "That's right!" YesButtonPressed
+                                , primaryButton "No, that's wrong" NoButtonPressed
                                 ]
+                            ]
+
+                    EditQuestion ->
+                        -- TODO: there's a lot here shared with GotMovie above. Factor it out.
+                        column [ width fill, spacing 20 ]
+                            [ case model.currentNode of
+                                Empty ->
+                                    -- Should be impossible!
+                                    text "This should not be possible!"
+
+                                Node v _ _ ->
+                                    Input.text [ onEnter QuestionWasEntered, spacing 10 ]
+                                        { text = model.questionFieldText
+                                        , placeholder = Nothing
+                                        , label =
+                                            Input.labelAbove [ spacing 20 ]
+                                                (paragraph [ centerX, width fill ]
+                                                    [ text <|
+                                                        "Ok. Try asking a different question. What question about "
+                                                    , el [ Font.semiBold, Font.italic ]
+                                                        (text <|
+                                                            model.movieFieldText
+                                                        )
+                                                    , text <|
+                                                        " could I ask to distinguish it from "
+                                                    , el [ Font.semiBold, Font.italic ] (text v)
+                                                    , text "? (It should be one that can be answered with YES)"
+                                                    ]
+                                                )
+                                        , onChange = QuestionFieldUpdated
+                                        }
                             ]
 
                     MovieAdded ->

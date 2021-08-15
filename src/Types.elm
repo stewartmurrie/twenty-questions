@@ -14,6 +14,7 @@ type GameState
     | GotMovie
     | GotQuestion
     | MovieAdded
+    | EditQuestion
 
 
 type alias FrontendModel =

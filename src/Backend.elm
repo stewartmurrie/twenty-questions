@@ -1,6 +1,5 @@
 module Backend exposing (app)
 
-import Array exposing (initialize)
 import Lamdera exposing (ClientId, SessionId, sendToFrontend)
 import QuestionTree exposing (Answer(..), QuestionTree(..), addKnowledge)
 import Types exposing (BackendModel, BackendMsg(..), ToBackend(..), ToFrontend(..))
@@ -21,7 +20,7 @@ app =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { tree = Node "Is it The Terminator?" (Node "RoboCop" Empty Empty) (Node "The Terminator" Empty Empty) }
+    ( { tree = Node "Does the movie star Arnold Schwarzenegger?" (Node "RoboCop" Empty Empty) (Node "The Terminator" Empty Empty) }
     , Cmd.none
     )
 
