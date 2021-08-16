@@ -25,6 +25,7 @@ type alias FrontendModel =
     , movieFieldText : String
     , questionFieldText : String
     , questionLog : List String -- TODO: consider replacing this with a list of nodes, or path through the tree
+    , movieCount : Int
     }
 
 
@@ -49,6 +50,7 @@ type FrontendMsg
 type ToBackend
     = GetTree
     | AddMovie String String Answer QuestionTree
+    | GetMovieCount
 
 
 type BackendMsg
@@ -57,3 +59,4 @@ type BackendMsg
 
 type ToFrontend
     = TreeSent QuestionTree
+    | MovieCount Int

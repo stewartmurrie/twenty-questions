@@ -10,7 +10,7 @@ import Element.Input as Input exposing (button)
 import Evergreen.V1.QuestionTree exposing (QuestionTree)
 import Html.Events
 import Json.Decode as Decode
-import Lamdera
+import Lamdera exposing (sendToBackend)
 import QuestionTree exposing (Answer(..), QuestionTree(..))
 import Types exposing (..)
 import Url
@@ -46,8 +46,9 @@ init url key =
       , movieFieldText = ""
       , questionFieldText = ""
       , questionLog = []
+      , movieCount = 0
       }
-    , Cmd.none
+    , sendToBackend GetMovieCount
     )
 
 
@@ -192,6 +193,9 @@ updateFromBackend msg model =
                     , movieFieldText = ""
                     , questionLog = []
                 }
+
+        MovieCount count ->
+            noCmd { model | movieCount = count }
 
 
 
@@ -430,6 +434,8 @@ view model =
                     [ newTabLink [] { url = "https://github.com/stewartmurrie/twenty-questions", label = el [] (text "@stewartmurrie") }
                     , el [] (text " | ")
                     , newTabLink [] { url = "https://elm-lang.org/", label = el [] (text "made with elm") }
+                    , el [] (text " | ")
+                    , text <| String.fromInt model.movieCount ++ " movies"
                     ]
                 ]
         ]

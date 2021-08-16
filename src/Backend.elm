@@ -1,6 +1,6 @@
 module Backend exposing (app)
 
-import Lamdera exposing (ClientId, SessionId, sendToFrontend)
+import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import QuestionTree exposing (Answer(..), QuestionTree(..), addKnowledge)
 import Types exposing (BackendModel, BackendMsg(..), ToBackend(..), ToFrontend(..))
 
@@ -39,4 +39,11 @@ updateFromFrontend sessionId clientId msg model =
             ( model, sendToFrontend clientId (TreeSent model.tree) )
 
         AddMovie question movie answer node ->
-            ( { model | tree = addKnowledge question movie node answer model.tree }, Cmd.none )
+            let
+                newTree =
+                    addKnowledge question movie node answer model.tree
+            in
+            ( { model | tree = newTree }, broadcast (MovieCount (QuestionTree.countAnswers newTree)) )
+
+        GetMovieCount ->
+            ( model, sendToFrontend clientId (MovieCount (QuestionTree.countAnswers model.tree)) )
