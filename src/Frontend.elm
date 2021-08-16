@@ -2,7 +2,7 @@ module Frontend exposing (..)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
-import Element exposing (Color, Element, alignBottom, centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
+import Element exposing (Color, Element, alignBottom, centerX, centerY, column, el, fill, height, maximum, minimum, padding, paddingEach, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
 import Element.Background as Background
 import Element.Border as Border exposing (rounded)
 import Element.Font as Font
@@ -130,7 +130,7 @@ update msg model =
                     -- Allow them to edit the question.
                     noCmd
                         { model
-                            | state = EditQuestion
+                            | state = GotMovie
                         }
 
                 _ ->
@@ -147,12 +147,15 @@ update msg model =
 
         QuestionWasEntered ->
             let
+                rawQuestion =
+                    String.trim model.questionFieldText
+
                 question =
-                    if String.endsWith "?" model.questionFieldText then
-                        model.questionFieldText
+                    if String.endsWith "?" rawQuestion then
+                        rawQuestion
 
                     else
-                        model.questionFieldText ++ "?"
+                        rawQuestion ++ "?"
             in
             noCmd { model | state = GotQuestion, questionFieldText = question }
 
@@ -192,6 +195,7 @@ updateFromBackend msg model =
 
 
 -- VIEW
+-- COLOR CONSTANTS
 
 
 neonGreen : Color
@@ -209,19 +213,25 @@ neonBlue =
     rgb255 0 162 209
 
 
+black : Color
+black =
+    rgb255 15 15 15
+
+
 view : Model -> Browser.Document FrontendMsg
 view model =
     { title = "Movie Qs!"
     , body =
-        [ Element.layout [ Background.color (rgb255 220 220 220) ] <|
-            column [ centerX, width (375 |> px), height fill, padding 40, Background.color (rgb255 12 11 11), Font.color (rgb255 245 245 245) ]
-                [ column [ centerX, paddingXY 0 48, spacing 8 ] <|
+        [ Element.layout [ Background.color black ] <|
+            column [ centerX, width (fill |> minimum 375 |> maximum 600), height fill, padding 24, Background.color black, Font.size 17, Font.color (rgb255 245 245 245) ]
+                -- Header
+                [ column [ centerX, paddingEach { top = 16, left = 0, right = 0, bottom = 56 }, spacing 8 ] <|
                     [ el [ centerX, Font.size 48, Font.bold ] (text "Movie Q's")
                     , el [ centerX ] (text "The Movie Guessing Game")
                     ]
                 , case model.state of
                     InLobby ->
-                        column [ width fill, spacing 30, Font.size 17 ]
+                        column [ width fill, spacing 30 ]
                             [ text "Think of a movie."
                             , paragraph []
                                 [ text "I'll try to guess it by asking questions." ]
@@ -238,23 +248,54 @@ view model =
                             , el [ width fill, paddingXY 0 32 ] (primaryButton neonPink "Let's Play!" PlayButtonPressed)
                             ]
 
+                    Running ->
+                        column [ width fill, spacing 20 ]
+                            [ viewQuestionLog model.questionLog
+                            , case model.currentNode of
+                                Empty ->
+                                    -- Should be impossible
+                                    text "This shouldn't happen!"
+
+                                Node n l _ ->
+                                    case l of
+                                        Empty ->
+                                            paragraph []
+                                                [ text <| "Q" ++ viewQuestionCount model.questionLog ++ ": "
+                                                , text <| "Is it "
+                                                , el [ Font.semiBold, Font.italic, Font.color neonPink ] (text n)
+                                                , el [ Font.italic ] (text "?")
+                                                ]
+
+                                        _ ->
+                                            paragraph []
+                                                [ text <| "Q" ++ viewQuestionCount model.questionLog ++ ": "
+                                                , text n
+                                                ]
+                            , row [ centerX, width fill, spacing 24, paddingXY 0 48 ]
+                                [ primaryButton neonGreen "Yes" YesButtonPressed
+                                , primaryButton neonBlue "No" NoButtonPressed
+                                ]
+                            ]
+
                     Won ->
-                        column [ centerX ]
+                        column [ centerX, spacing 20 ]
                             [ viewQuestionLog model.questionLog
                             , el [] (text <| "Yay! I guessed right!")
-                            , primaryButton neonPink "Play Again" PlayButtonPressed
+                            , el [ paddingXY 0 48, width fill ] (primaryButton neonPink "Play Again" PlayButtonPressed)
                             ]
 
                     Lost ->
                         column [ width fill, spacing 20 ]
                             [ viewQuestionLog model.questionLog
-                            , text "Bummer! I got it wrong."
-                            , Input.text [ onEnter MovieWasEntered, spacing 10 ]
+                            , text "Bummer! I guessed wrong."
+                            , Input.multiline [ onEnter MovieWasEntered, Background.color black, Border.color neonPink, Border.glow neonPink 1.5 ]
                                 { text = model.movieFieldText
                                 , placeholder = Nothing
-                                , label = Input.labelAbove [] (text "What movie were you thinking of?")
+                                , label = Input.labelAbove [ paddingXY 0 16 ] (text "What movie were you thinking of?")
                                 , onChange = MovieFieldUpdated
+                                , spellcheck = False
                                 }
+                            , el [ paddingXY 0 48, width fill ] (primaryButton neonPink "Next" MovieWasEntered)
                             ]
 
                     GotMovie ->
@@ -265,46 +306,55 @@ view model =
                                     text "This should not be possible!"
 
                                 Node v _ _ ->
-                                    Input.text [ onEnter QuestionWasEntered, spacing 10 ]
+                                    Input.multiline [ onEnter QuestionWasEntered, Background.color black, Border.color neonPink, Border.glow neonPink 1.5 ]
                                         { text = model.questionFieldText
                                         , placeholder = Nothing
                                         , label =
-                                            Input.labelAbove [ spacing 20 ]
-                                                (paragraph [ centerX, width fill ]
-                                                    [ text <|
-                                                        "What question about "
-                                                    , el [ Font.semiBold, Font.italic ]
-                                                        (text <|
-                                                            model.movieFieldText
-                                                        )
-                                                    , text <|
-                                                        " could I ask to distinguish it from "
-                                                    , el [ Font.semiBold, Font.italic ] (text v)
-                                                    , text "? (It should be one that can be answered with YES)"
+                                            Input.labelAbove []
+                                                (column [ paddingXY 0 24, spacing 20 ]
+                                                    [ paragraph [ spacing 8 ]
+                                                        [ text "What question about "
+                                                        , el [ Font.semiBold, Font.italic, Font.color neonPink ]
+                                                            (text model.movieFieldText)
+                                                        , text " could I ask to distinguish it from "
+                                                        , el [ Font.semiBold, Font.italic, Font.color neonPink ] (text v)
+                                                        , el [ Font.italic ] (text "?")
+                                                        ]
+                                                    , paragraph [ spacing 8 ]
+                                                        [ el [ Font.italic ] (text "(It should be one that can be answered with ")
+                                                        , el [ Font.italic, Font.bold, Font.color neonGreen ] (text "YES")
+                                                        , el [ Font.italic ] (text ")")
+                                                        ]
                                                     ]
                                                 )
                                         , onChange = QuestionFieldUpdated
+                                        , spellcheck = False
                                         }
+                            , el [ paddingXY 0 48, width fill ] (primaryButton neonPink "Next" QuestionWasEntered)
                             ]
 
                     GotQuestion ->
-                        column []
-                            [ paragraph []
-                                [ text <| "Let me make sure I understand."
-                                , text <| "For the movie "
-                                , el [ Font.italic, Font.semiBold ] (text model.movieFieldText)
-                                , text <| " the answer to the question "
-                                , el [ Font.italic ] (text <| "'" ++ model.questionFieldText ++ "'")
-                                , text <| " is YES. Correct?"
+                        column [ spacing 20, width fill ]
+                            [ text <| "Let's make sure I understand."
+                            , paragraph []
+                                [ text <| "For the movie "
+                                , el [ Font.italic, Font.bold, Font.color neonPink ] (text model.movieFieldText)
+                                , text <| ", if I ask the question: "
                                 ]
-                            , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
+                            , paragraph [] [ el [ Font.italic ] (text <| "'" ++ model.questionFieldText ++ "'") ]
+                            , paragraph []
+                                [ text <| "the answer is "
+                                , el [ Font.bold, Font.italic, Font.color neonGreen ] (text "YES")
+                                , text ". Correct?"
+                                ]
+                            , row [ centerX, width fill, spacing 24, paddingXY 0 48 ]
                                 [ primaryButton neonGreen "Yes" YesButtonPressed
                                 , primaryButton neonBlue "No" NoButtonPressed
                                 ]
                             ]
 
                     EditQuestion ->
-                        -- TODO: there's a lot here shared with GotMovie above. Factor it out.
+                        -- TODO: probably remove this, since I just use the existing question entry stuff above
                         column [ width fill, spacing 20 ]
                             [ case model.currentNode of
                                 Empty ->
@@ -338,39 +388,10 @@ view model =
                         column [ centerX, width fill, spacing 20 ]
                             [ paragraph []
                                 [ text <| "Ok! I'll remember "
-                                , el [ Font.italic, Font.semiBold ] (text model.movieFieldText)
+                                , el [ Font.italic, Font.bold, Font.color neonPink ] (text model.movieFieldText)
                                 , text " for next time."
                                 ]
-                            , primaryButton neonPink "Play Again" PlayButtonPressed
-                            ]
-
-                    Running ->
-                        column [ centerX, width fill ]
-                            [ viewQuestionLog model.questionLog
-                            , case model.currentNode of
-                                Empty ->
-                                    -- Should be impossible
-                                    text "This shouldn't happen!"
-
-                                Node n l _ ->
-                                    case l of
-                                        Empty ->
-                                            paragraph []
-                                                [ text <| "Q" ++ viewQuestionCount model.questionLog ++ ": "
-                                                , text <| "Is it the movie "
-                                                , el [ Font.semiBold, Font.italic ] (text n)
-                                                , text "?"
-                                                ]
-
-                                        _ ->
-                                            paragraph []
-                                                [ text <| "Q" ++ viewQuestionCount model.questionLog ++ ": "
-                                                , text n
-                                                ]
-                            , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
-                                [ primaryButton neonGreen "Yes" YesButtonPressed
-                                , primaryButton neonBlue "No" NoButtonPressed
-                                ]
+                            , el [ width fill, paddingXY 0 48 ] (primaryButton neonPink "Play Again" PlayButtonPressed)
                             ]
                 , row [ centerX, alignBottom, Font.size 13, Font.color (rgb255 150 150 150) ]
                     [ el [] (text "@stewartmurrie")
@@ -384,10 +405,13 @@ view model =
 
 viewQuestionLog : List String -> Element FrontendMsg
 viewQuestionLog log =
-    column [ spacing 10 ]
+    column [ spacing 20 ]
         (log
             |> List.reverse
-            |> List.indexedMap (\i q -> el [] <| text <| "Q" ++ String.fromInt (i + 1) ++ ": " ++ q)
+            |> List.indexedMap
+                (\i q ->
+                    paragraph [] [ text <| "Q" ++ String.fromInt (i + 1) ++ ": " ++ q ]
+                )
         )
 
 
