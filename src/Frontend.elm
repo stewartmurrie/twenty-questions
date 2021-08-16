@@ -2,11 +2,12 @@ module Frontend exposing (..)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
-import Element exposing (Color, Element, alignBottom, centerX, centerY, column, el, fill, height, maximum, minimum, newTabLink, padding, paddingEach, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
+import Element exposing (Color, Element, alignBottom, centerX, centerY, column, el, fill, height, maximum, minimum, moveUp, newTabLink, padding, paddingEach, paddingXY, paragraph, px, rgb, rgb255, row, spaceEvenly, spacing, spacingXY, text, textColumn, width)
 import Element.Background as Background
 import Element.Border as Border exposing (rounded)
 import Element.Font as Font
 import Element.Input as Input exposing (button)
+import Evergreen.V1.QuestionTree exposing (QuestionTree)
 import Html.Events
 import Json.Decode as Decode
 import Lamdera
@@ -218,16 +219,47 @@ black =
     rgb255 15 15 15
 
 
+white : Color
+white =
+    rgb255 245 245 245
+
+
 view : Model -> Browser.Document FrontendMsg
 view model =
     { title = "Movie Qs!"
     , body =
         [ Element.layout [ Background.color black ] <|
-            column [ centerX, width (fill |> minimum 375 |> maximum 600), height fill, padding 24, Background.color black, Font.size 17, Font.color (rgb255 245 245 245) ]
+            column [ centerX, width (fill |> minimum 375 |> maximum 600), height fill, padding 24, Background.color black, Font.size 17, Font.color white ]
                 -- Header
-                [ column [ centerX, paddingEach { top = 16, left = 0, right = 0, bottom = 56 }, spacing 8 ] <|
-                    [ el [ centerX, Font.size 48, Font.bold ] (text "Movie Q's")
-                    , el [ centerX ] (text "The Movie Guessing Game")
+                [ column [ centerX, paddingEach { top = 16, left = 0, right = 0, bottom = 56 }, spacing 16 ] <|
+                    [ el
+                        [ centerX
+                        , Font.family
+                            [ Font.external
+                                -- { name = "Bungee Shade"
+                                -- , url = "https://fonts.googleapis.com/css2?family=Bungee+Shade&display=swap"
+                                -- }
+                                { name = "Bungee Outline"
+                                , url = "https://fonts.googleapis.com/css2?family=Bungee+Outline&display=swap"
+                                }
+                            , Font.sansSerif
+                            ]
+                        , Font.color neonPink
+                        , Font.size 56
+                        , Font.bold
+                        , Font.glow neonPink 4
+                        ]
+                        (text "Movie Q's")
+                    , row [ width fill, centerX, spaceEvenly ]
+                        [ el [ Font.size 11, Font.color neonBlue, moveUp 1, Font.glow neonBlue 2, Font.letterSpacing 1 ] (text "★★★")
+                        , el
+                            [ Font.italic
+                            , Font.color neonBlue
+                            , Font.size 17
+                            ]
+                            (text "THE MOVIE GUESSING GAME")
+                        , el [ Font.size 11, Font.color neonBlue, moveUp 1, Font.glow neonBlue 2, Font.letterSpacing 1 ] (text "★★★")
+                        ]
                     ]
                 , case model.state of
                     InLobby ->
@@ -243,7 +275,8 @@ view model =
                                 , text "."
                                 ]
                             , paragraph [ spacing 8 ] [ text "If I'm wrong, tell me your movie and I'll remember it for next time." ]
-                            , paragraph [] [ text "I know ", el [ Font.bold, Font.color neonPink ] (text "23"), text " movies." ]
+
+                            -- , paragraph [] [ text "I know ", el [ Font.bold, Font.color neonPink ] (text (String.fromInt (QuestionTree.countAnswers model.tree))), text " movies." ]
                             , text "Ready to play?"
                             , el [ width fill, paddingXY 0 32 ] (primaryButton neonPink "Let's Play!" PlayButtonPressed)
                             ]

@@ -38,3 +38,17 @@ addKnowledge question movie node answer tree =
 
             else
                 Node value (addKnowledge question movie node answer left) (addKnowledge question movie node answer right)
+
+
+countAnswers : QuestionTree -> Int
+countAnswers tree =
+    case tree of
+        Empty ->
+            0
+
+        Node _ left right ->
+            if left == Empty && right == Empty then
+                1
+
+            else
+                countAnswers left + countAnswers right
