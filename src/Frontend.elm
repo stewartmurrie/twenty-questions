@@ -2,7 +2,7 @@ module Frontend exposing (..)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
-import Element exposing (Color, Element, alignBottom, centerX, centerY, column, el, fill, height, maximum, minimum, padding, paddingEach, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
+import Element exposing (Color, Element, alignBottom, centerX, centerY, column, el, fill, height, maximum, minimum, newTabLink, padding, paddingEach, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
 import Element.Background as Background
 import Element.Border as Border exposing (rounded)
 import Element.Font as Font
@@ -394,9 +394,9 @@ view model =
                             , el [ width fill, paddingXY 0 48 ] (primaryButton neonPink "Play Again" PlayButtonPressed)
                             ]
                 , row [ centerX, alignBottom, Font.size 13, Font.color (rgb255 150 150 150) ]
-                    [ el [] (text "@stewartmurrie")
+                    [ newTabLink [] { url = "https://github.com/stewartmurrie/twenty-questions", label = el [] (text "@stewartmurrie") }
                     , el [] (text " | ")
-                    , el [] (text "made with elm")
+                    , newTabLink [] { url = "https://elm-lang.org/", label = el [] (text "made with elm") }
                     ]
                 ]
         ]
