@@ -20,7 +20,7 @@ app =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { tree = Node "Does the movie star Arnold Schwarzenegger?" (Node "RoboCop" Empty Empty) (Node "The Terminator" Empty Empty) }
+    ( { tree = Node "Is it a sci-fi movie?" (Node "Titanic" Empty Empty) (Node "Star Wars: Episode IV—A New Hope" Empty Empty) }
     , Cmd.none
     )
 
