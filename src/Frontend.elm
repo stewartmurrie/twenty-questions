@@ -2,9 +2,9 @@ module Frontend exposing (..)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
-import Element exposing (Element, centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
-import Element.Background exposing (color)
-import Element.Border exposing (rounded)
+import Element exposing (Color, Element, alignBottom, centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb, rgb255, row, spacing, spacingXY, text, textColumn, width)
+import Element.Background as Background
+import Element.Border as Border exposing (rounded)
 import Element.Font as Font
 import Element.Input as Input exposing (button)
 import Html.Events
@@ -190,36 +190,59 @@ updateFromBackend msg model =
                 }
 
 
+
+-- VIEW
+
+
+neonGreen : Color
+neonGreen =
+    rgb255 77 209 0
+
+
+neonPink : Color
+neonPink =
+    rgb255 248 53 218
+
+
+neonBlue : Color
+neonBlue =
+    rgb255 0 162 209
+
+
 view : Model -> Browser.Document FrontendMsg
 view model =
     { title = "Movie Qs!"
     , body =
-        [ Element.layout [ centerX, color (rgb255 220 220 220), padding 20 ] <|
-            column
-                [ centerX ]
-                [ el [ centerX ] <|
-                    el
-                        [ Font.size 48
-                        , Font.bold
-                        , paddingXY 0 50
-                        ]
-                        (text "Movie Q's!")
+        [ Element.layout [ Background.color (rgb255 220 220 220) ] <|
+            column [ centerX, width (375 |> px), height fill, padding 40, Background.color (rgb255 12 11 11), Font.color (rgb255 245 245 245) ]
+                [ column [ centerX, paddingXY 0 48, spacing 8 ] <|
+                    [ el [ centerX, Font.size 48, Font.bold ] (text "Movie Q's")
+                    , el [ centerX ] (text "The Movie Guessing Game")
+                    ]
                 , case model.state of
                     InLobby ->
-                        column [ width fill, spacing 20 ]
-                            [ el [ Font.size 24, Font.bold ] (text "How to Play")
-                            , text "Think of a movie."
-                            , text "I'll try to guess the title by asking questions which you answer with YES or NO."
-                            , text "If I guess wrong, you can tell me your movie and I'll remember it for next time."
+                        column [ width fill, spacing 30, Font.size 17 ]
+                            [ text "Think of a movie."
+                            , paragraph []
+                                [ text "I'll try to guess it by asking questions." ]
+                            , paragraph [ spacing 8 ]
+                                [ text "You answer with "
+                                , el [ Font.bold, Font.italic, Font.color neonGreen ] (text "YES")
+                                , text " or "
+                                , el [ Font.bold, Font.italic, Font.color neonBlue ] (text "NO")
+                                , text "."
+                                ]
+                            , paragraph [ spacing 8 ] [ text "If I'm wrong, tell me your movie and I'll remember it for next time." ]
+                            , paragraph [] [ text "I know ", el [ Font.bold, Font.color neonPink ] (text "23"), text " movies." ]
                             , text "Ready to play?"
-                            , primaryButton "Let's Play!" PlayButtonPressed
+                            , el [ width fill, paddingXY 0 32 ] (primaryButton neonPink "Let's Play!" PlayButtonPressed)
                             ]
 
                     Won ->
-                        column [ centerX, width fill, spacing 20 ]
+                        column [ centerX ]
                             [ viewQuestionLog model.questionLog
                             , el [] (text <| "Yay! I guessed right!")
-                            , primaryButton "Play Again" PlayButtonPressed
+                            , primaryButton neonPink "Play Again" PlayButtonPressed
                             ]
 
                     Lost ->
@@ -275,8 +298,8 @@ view model =
                                 , text <| " is YES. Correct?"
                                 ]
                             , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
-                                [ primaryButton "That's right!" YesButtonPressed
-                                , primaryButton "No, that's wrong" NoButtonPressed
+                                [ primaryButton neonGreen "Yes" YesButtonPressed
+                                , primaryButton neonBlue "No" NoButtonPressed
                                 ]
                             ]
 
@@ -318,7 +341,7 @@ view model =
                                 , el [ Font.italic, Font.semiBold ] (text model.movieFieldText)
                                 , text " for next time."
                                 ]
-                            , primaryButton "Play Again" PlayButtonPressed
+                            , primaryButton neonPink "Play Again" PlayButtonPressed
                             ]
 
                     Running ->
@@ -345,10 +368,15 @@ view model =
                                                 , text n
                                                 ]
                             , row [ centerX, width fill, spacing 50, paddingXY 0 20 ]
-                                [ primaryButton "Yes" YesButtonPressed
-                                , primaryButton "No" NoButtonPressed
+                                [ primaryButton neonGreen "Yes" YesButtonPressed
+                                , primaryButton neonBlue "No" NoButtonPressed
                                 ]
                             ]
+                , row [ centerX, alignBottom, Font.size 13, Font.color (rgb255 150 150 150) ]
+                    [ el [] (text "@stewartmurrie")
+                    , el [] (text " | ")
+                    , el [] (text "made with elm")
+                    ]
                 ]
         ]
     }
@@ -368,20 +396,21 @@ viewQuestionCount log =
     log |> List.length |> (+) 1 |> String.fromInt
 
 
-primaryButton : String -> FrontendMsg -> Element FrontendMsg
-primaryButton label msg =
+primaryButton : Color -> String -> FrontendMsg -> Element FrontendMsg
+primaryButton color label msg =
     button
-        [ paddingXY 30 15
-        , color (rgb255 176 67 138)
-        , rounded 5
-        , Font.color (rgb 1 1 1)
+        [ Background.color color
+        , Border.solid
+        , Border.width 2
+        , Border.color (rgb255 0 0 0)
+        , Border.glow color 4
+        , rounded 32
+        , paddingXY 16 0
         , width fill
-        , centerX
-        , centerY
-        , height (80 |> px)
+        , height (56 |> px)
         ]
         { onPress = Just msg
-        , label = el [ centerX, Font.bold, Font.size 24 ] (text label)
+        , label = el [ centerX, Font.bold, Font.size 21, Font.letterSpacing 0.37 ] (text (String.toUpper label))
         }
 
 
