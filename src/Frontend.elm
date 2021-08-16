@@ -205,7 +205,7 @@ updateFromBackend msg model =
 
 neonGreen : Color
 neonGreen =
-    rgb255 77 209 0
+    rgb255 62 191 7
 
 
 neonPink : Color
@@ -469,8 +469,9 @@ primaryButton color label msg =
         , Border.glow color 4
         , rounded 32
         , paddingXY 16 0
-        , width fill
+        , width (fill |> maximum 300)
         , height (56 |> px)
+        , centerX
         ]
         { onPress = Just msg
         , label = el [ centerX, Font.bold, Font.size 21, Font.letterSpacing 0.37 ] (text (String.toUpper label))
