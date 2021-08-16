@@ -18,6 +18,7 @@ frontendModel old =
           , questionFieldText = old.questionFieldText
           , questionLog = old.questionLog
           , movieCount = 0
+          , password = ""
           }
         , Cmd.none
         )

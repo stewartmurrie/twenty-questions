@@ -27,6 +27,7 @@ type alias FrontendModel =
     , questionFieldText : String
     , questionLog : List String
     , movieCount : Int
+    , password : String
     }
 
 
@@ -46,13 +47,14 @@ type FrontendMsg
     | PlayButtonPressed
     | UrlClicked Browser.UrlRequest
     | UrlChanged Url.Url
+    | PasswordFieldUpdated String
 
 
 type ToBackend
     = GetTree
     | AddMovie String String Evergreen.V3.QuestionTree.Answer Evergreen.V3.QuestionTree.QuestionTree
     | GetMovieCount
-    | ResetModel
+    | ResetModel String
 
 
 type BackendMsg
