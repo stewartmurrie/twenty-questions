@@ -15,6 +15,7 @@ type GameState
     | GotQuestion
     | MovieAdded
     | EditQuestion
+    | ConfirmModelReset
 
 
 type alias FrontendModel =
@@ -26,6 +27,7 @@ type alias FrontendModel =
     , questionFieldText : String
     , questionLog : List String -- TODO: consider replacing this with a list of nodes, or path through the tree
     , movieCount : Int
+    , password : String
     }
 
 
@@ -45,12 +47,14 @@ type FrontendMsg
     | PlayButtonPressed
     | UrlClicked UrlRequest
     | UrlChanged Url
+    | PasswordFieldUpdated String
 
 
 type ToBackend
     = GetTree
     | AddMovie String String Answer QuestionTree
     | GetMovieCount
+    | ResetModel String
 
 
 type BackendMsg

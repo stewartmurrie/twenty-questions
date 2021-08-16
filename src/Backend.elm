@@ -1,5 +1,6 @@
 module Backend exposing (app)
 
+import Env
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import QuestionTree exposing (Answer(..), QuestionTree(..), addKnowledge)
 import Types exposing (BackendModel, BackendMsg(..), ToBackend(..), ToFrontend(..))
@@ -20,9 +21,11 @@ app =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { tree = Node "Is it a sci-fi movie?" (Node "Titanic" Empty Empty) (Node "Star Wars: Episode IV—A New Hope" Empty Empty) }
-    , Cmd.none
-    )
+    let
+        initModel =
+            { tree = Node "Is it a sci-fi movie?" (Node "Titanic" Empty Empty) (Node "Star Wars: Episode IV—A New Hope" Empty Empty) }
+    in
+    ( initModel, broadcast (MovieCount (QuestionTree.countAnswers initModel.tree)) )
 
 
 update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
@@ -47,3 +50,10 @@ updateFromFrontend sessionId clientId msg model =
 
         GetMovieCount ->
             ( model, sendToFrontend clientId (MovieCount (QuestionTree.countAnswers model.tree)) )
+
+        ResetModel password ->
+            if password == Env.resetPassword then
+                init
+
+            else
+                ( model, Cmd.none )

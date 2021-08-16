@@ -7,6 +7,7 @@ import Element.Background as Background
 import Element.Border as Border exposing (rounded)
 import Element.Font as Font
 import Element.Input as Input exposing (button)
+import Env
 import Evergreen.V1.QuestionTree exposing (QuestionTree)
 import Html.Events
 import Json.Decode as Decode
@@ -47,6 +48,7 @@ init url key =
       , questionFieldText = ""
       , questionLog = []
       , movieCount = 0
+      , password = ""
       }
     , sendToBackend GetMovieCount
     )
@@ -95,7 +97,21 @@ update msg model =
                     ( { model
                         | state = MovieAdded
                       }
-                    , Lamdera.sendToBackend (AddMovie model.questionFieldText model.movieFieldText Yes model.currentNode)
+                    , sendToBackend (AddMovie model.questionFieldText model.movieFieldText Yes model.currentNode)
+                    )
+
+                ConfirmModelReset ->
+                    -- We're trashing the model and starting over. How exciting!
+                    ( { model
+                        | currentNode = model.tree
+                        , state = InLobby
+                        , movieFieldText = ""
+                        , questionFieldText = ""
+                        , questionLog = []
+                        , movieCount = 0
+                        , password = ""
+                      }
+                    , sendToBackend (ResetModel model.password)
                     )
 
                 _ ->
@@ -135,6 +151,19 @@ update msg model =
                             | state = GotMovie
                         }
 
+                ConfirmModelReset ->
+                    -- Noooo don't delete the movies!
+                    noCmd
+                        { model
+                            | currentNode = model.tree
+                            , state = InLobby
+                            , movieFieldText = ""
+                            , questionFieldText = ""
+                            , questionLog = []
+                            , movieCount = 0
+                            , password = ""
+                        }
+
                 _ ->
                     noCmd model
 
@@ -142,7 +171,18 @@ update msg model =
             noCmd { model | movieFieldText = t }
 
         MovieWasEntered ->
-            noCmd { model | state = GotMovie }
+            let
+                movieTitle =
+                    String.trim model.movieFieldText
+            in
+            if movieTitle == "" then
+                noCmd model
+
+            else if movieTitle == Env.resetCommand then
+                noCmd { model | state = ConfirmModelReset }
+
+            else
+                noCmd { model | state = GotMovie }
 
         QuestionFieldUpdated t ->
             noCmd { model | questionFieldText = t }
@@ -161,6 +201,9 @@ update msg model =
             in
             noCmd { model | state = GotQuestion, questionFieldText = question }
 
+        PasswordFieldUpdated t ->
+            noCmd { model | password = t }
+
         PlayButtonPressed ->
             ( { model
                 | state = Running
@@ -168,6 +211,7 @@ update msg model =
                 , questionFieldText = ""
                 , movieFieldText = ""
                 , questionLog = []
+                , password = ""
               }
             , Lamdera.sendToBackend GetTree
             )
@@ -185,13 +229,14 @@ updateFromBackend msg model =
         TreeSent tree ->
             noCmd
                 { model
-                  -- TODO: this reset appears under PlayButtonPressed above. Factor it out.
+                  -- TODO: this reset appears under PlayButtonPressed above also init. Factor it out.
                     | state = Running
                     , tree = tree
                     , currentNode = tree
                     , questionFieldText = ""
                     , movieFieldText = ""
                     , questionLog = []
+                    , password = ""
                 }
 
         MovieCount count ->
@@ -429,6 +474,22 @@ view model =
                                 , text " for next time."
                                 ]
                             , el [ width fill, paddingXY 0 48 ] (primaryButton neonPink "Play Again" PlayButtonPressed)
+                            ]
+
+                    ConfirmModelReset ->
+                        column [ centerX, width fill, spacing 20 ]
+                            [ text "This will delete all movies."
+                            , Input.currentPassword [ Background.color black, Border.color neonPink, Border.glow neonPink 1.5, spacing 10 ]
+                                { text = model.password
+                                , placeholder = Nothing
+                                , label = Input.labelAbove [ spacing 20 ] (text "Enter password to confirm")
+                                , onChange = PasswordFieldUpdated
+                                , show = False
+                                }
+                            , row [ centerX, width fill, spacing 24, paddingXY 0 48 ]
+                                [ primaryButton neonGreen "Yes, delete" YesButtonPressed
+                                , primaryButton neonBlue "No" NoButtonPressed
+                                ]
                             ]
                 , row [ centerX, alignBottom, Font.size 13, Font.color (rgb255 150 150 150) ]
                     [ newTabLink [] { url = "https://github.com/stewartmurrie/twenty-questions", label = el [] (text "@stewartmurrie") }

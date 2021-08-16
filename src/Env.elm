@@ -1,5 +1,9 @@
 module Env exposing (..)
 
 
-dummyConfigItem =
-    ""
+resetPassword =
+    "$ResetModel!"
+
+
+resetCommand =
+    "Reset Movies"
